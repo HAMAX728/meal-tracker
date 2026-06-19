@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>食事トラッカー</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height:100vh}
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:20px;text-align:center}
+.header h1{font-size:24px;margin-bottom:4px}
+.header p{font-size:13px;opacity:0.8}
+.tabs{display:flex;background:white;box-shadow:0 2px 4px rgba(0,0,0,0.1);position:sticky;top:0;z-index:100}
+.tab{flex:1;padding:12px 4px;text-align:center;cursor:pointer;font-size:11px;color:#888;border-bottom:3px solid transparent;transition:all 0.2s}
+.tab.active{color:#667eea;border-bottom:3px solid #667eea;font-weight:bold}
+.content{padding:16px;max-width:600px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.card{background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.card h2{font-size:16px;color:#333;margin-bottom:12px}
+.calorie-ring{text-align:center;padding:16px 0 8px}
+.calorie-number{font-size:48px;font-weight:bold;color:#667eea}
+.calorie-label{font-size:13px;color:#888;margin-top:4px}
+.calorie-goal{font-size:13px;color:#aaa;margin-top:8px}
+.meal-section{border-left:4px solid #667eea;padding:10px 12px;margin:10px 0;border-radius:0 8px 8px 0;background:#fafafa;position:relative}
+.meal-section.breakfast{border-color:#f39c12}.meal-section.lunch{border-color:#27ae60}
+.meal-section.dinner{border-color:#e74c3c}.meal-section.snack{border-color:#9b59b6}
+.meal-type-label{font-size:11px;font-weight:bold;color:#666;margin-bottom:3px}
+.meal-content{font-size:14px;color:#333}.meal-cal{font-size:12px;color:#999;margin-top:2px}
+.meal-nutrients{font-size:11px;color:#bbb;margin-top:2px}
+.meal-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px}
+.meal-action-btn{background:none;border:1px solid #ddd;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;color:#888}
+.meal-action-btn.delete:hover{background:#fff0f0;border-color:#e74c3c;color:#e74c3c}
+.form-group{margin:10px 0}
+.form-group label{font-size:13px;color:#555;display:block;margin-bottom:4px;font-weight:bold}
+.form-group input,.form-group textarea{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none}
+.form-group input:focus,.form-group textarea:focus{border-color:#667eea}
+.nutrients-row{display:flex;gap:8px}.nutrients-row .form-group{flex:1}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:white}
+.btn-secondary{background:#f0f0f0;color:#555;margin-top:8px}
+.btn-ai{background:linear-gradient(135deg,#11998e,#38ef7d);color:white;margin-top:8px}
+.btn-photo{background:linear-gradient(135deg,#f093fb,#f5576c);color:white;margin-top:8px}
+.btn-sm{display:inline-block;width:auto;padding:8px 16px;font-size:13px;margin-top:6px}
+.meal-type-buttons{display:flex;gap:6px;margin:8px 0}
+.meal-type-btn{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;background:white;font-size:11px;cursor:pointer;text-align:center}
+.meal-type-btn.selected{border-color:#667eea;background:#f0f0ff;font-weight:bold}
+.date-nav{display:flex;align-items:center;justify-content:space-between;margin:12px 0}
+.date-nav button{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:16px}
+.date-nav span{font-size:14px;font-weight:bold;color:#333}
+.empty{text-align:center;padding:30px;color:#aaa;font-size:14px}
+.progress-bar{background:#eee;border-radius:10px;height:10px;margin:8px 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#667eea,#764ba2);transition:width 0.5s}
+.progress-fill.over{background:linear-gradient(90deg,#e74c3c,#c0392b)}
+.nutrient-cards{display:flex;gap:8px;margin-top:12px}
+.nutrient-card{flex:1;background:#f8f9ff;border-radius:10px;padding:10px;text-align:center}
+.nutrient-card .value{font-size:20px;font-weight:bold;color:#667eea}
+.nutrient-card .unit{font-size:11px;color:#999}
+.nutrient-card .label{font-size:11px;color:#666;margin-top:2px}
+.nutrient-card.protein .value{color:#e74c3c}
+.nutrient-card.fat .value{color:#f39c12}
+.nutrient-card.carbs .value{color:#27ae60}
+.ai-bubble{background:linear-gradient(135deg,#f0fff8,#e8f8f0);border:1.5px solid #38ef7d;border-radius:12px;padding:14px;margin-top:12px;font-size:13px;color:#1a5c3a;line-height:1.6;white-space:pre-wrap}
+.ai-loading{text-align:center;padding:20px;color:#888;font-size:13px}
+.ai-loading span{display:inline-block;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+.chart-bars{display:flex;gap:4px;align-items:flex-end;height:120px;padding:0 4px;margin-top:8px}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar-wrap{flex:1;display:flex;align-items:flex-end;width:100%}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#764ba2,#667eea);min-height:2px;transition:height 0.4s}
+.chart-bar.over{background:linear-gradient(180deg,#c0392b,#e74c3c)}
+.chart-label{font-size:10px;color:#888;margin-top:2px}.chart-date{font-size:9px;color:#aaa}
+.week-stats{display:flex;gap:8px;margin-top:12px}
+.week-stat{flex:1;text-align:center;background:#f8f9ff;border-radius:10px;padding:10px}
+.week-stat .val{font-size:18px;font-weight:bold;color:#667eea}
+.week-stat .lbl{font-size:11px;color:#888;margin-top:2px}
+.history-item{border-bottom:1px solid #eee;padding:12px 0}
+.history-item:last-child{border-bottom:none}
+.history-date-row{display:flex;justify-content:space-between;align-items:center}
+.history-nutrients{font-size:11px;color:#999;margin-top:3px}
+.history-meal-line{font-size:12px;color:#666;margin-top:3px;display:flex;justify-content:space-between}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:16px;padding:20px;width:90%;max-width:400px}
+.modal h3{font-size:17px;margin-bottom:14px;color:#333}
+.modal .btn{margin-top:10px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:14px;color:#333}.settings-sub{font-size:12px;color:#999;margin-top:2px}
+.settings-input{width:100px;padding:7px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;text-align:center;outline:none}
+.settings-input:focus{border-color:#667eea}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold}
+.badge-ok{background:#e8f8ef;color:#27ae60}.badge-over{background:#fdf0f0;color:#e74c3c}
+.photo-upload-area{border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-top:8px;transition:border 0.2s}
+.photo-upload-area:hover{border-color:#667eea;background:#f8f8ff}
+.photo-upload-area p{font-size:13px;color:#999;margin-top:6px}
+.photo-preview{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
+.nutrition-breakdown{margin-top:10px}
+.nutrition-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:8px;margin-bottom:4px;background:#f8f9ff;font-size:13px}
+.nutrition-item-name{color:#333;font-weight:bold}
+.nutrition-item-values{color:#888;font-size:11px}
+.nutrition-total{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;margin-top:6px;background:linear-gradient(135deg,#667eea22,#764ba222);font-size:13px;font-weight:bold;border:1.5px solid #667eea44}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🍽️ 食事トラッカー</h1>
+  <p id="header-date"></p>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="showPage('home',this)">🏠 ホーム</div>
+  <div class="tab" onclick="showPage('add',this)">➕ 追加</div>
+  <div class="tab" onclick="showPage('weekly',this)">📊 週間</div>
+  <div class="tab" onclick="showPage('history',this)">📅 履歴</div>
+  <div class="tab" onclick="showPage('settings',this)">⚙️ 設定</div>
+</div>
+<div class="content">
+  <div class="page active" id="page-home">
+    <div class="date-nav">
+      <button onclick="changeDate(-1)">◀</button>
+      <span id="display-date"></span>
+      <button onclick="changeDate(1)">▶</button>
+    </div>
+    <div class="card">
+      <h2>📊 カロリー</h2>
+      <div class="calorie-ring">
+        <div class="calorie-number" id="today-calories">0</div>
+        <div class="calorie-label">kcal 摂取</div>
+        <div class="calorie-goal">目標: <span id="goal-display">2000</span> kcal</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="calorie-progress" style="width:0%"></div></div>
+      <p id="calorie-status" style="text-align:center;font-size:13px;color:#888;margin-top:6px"></p>
+      <div class="nutrient-cards">
+        <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
+        <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
+        <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🍱 今日の食事</h2>
+      <div id="today-meals"><div class="empty">まだ記録がありません</div></div>
+    </div>
+    <div class="card">
+      <h2>🤖 AI栄養アドバイス</h2>
+      <button class="btn btn-ai" onclick="getAIAdvice()">✨ 今日の食事を分析する</button>
+      <div id="ai-result"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-add">
+    <div class="card">
+      <h2 id="add-title">✏️ 食事を記録</h2>
+      <input type="hidden" id="edit-meal-id">
+      <div class="form-group"><label>日付</label><input type="date" id="input-date"></div>
+      <div class="form-group">
+        <label>食事の種類</label>
+        <div class="meal-type-buttons">
+          <div class="meal-type-btn selected" onclick="selectMealType('breakfast')" id="btn-breakfast">🌅 朝食</div>
+          <div class="meal-type-btn" onclick="selectMealType('lunch')" id="btn-lunch">☀️ 昼食</div>
+          <div class="meal-type-btn" onclick="selectMealType('dinner')" id="btn-dinner">🌙 夕食</div>
+          <div class="meal-type-btn" onclick="selectMealType('snack')" id="btn-snack">🍪 間食</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>📷 写真からAI計算</label>
+        <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+          <div style="font-size:32px">📸</div>
+          <p>タップして写真を選ぶ</p>
+          <p style="font-size:11px;color:#bbb">料理の写真をアップロードするとAIが自動計算します</p>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+        <img id="photo-preview" class="photo-preview">
+        <button class="btn btn-photo btn-sm" id="btn-analyze-photo" style="display:none" onclick="analyzePhoto()">📷 写真をAIで分析する</button>
+      </div>
+      <div class="form-group">
+        <label>食事内容</label>
+        <textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚、緑茶" rows="3"></textarea>
+        <button class="btn btn-ai btn-sm" onclick="calcNutritionFromText()">🤖 テキストからAI計算する</button>
+      </div>
+      <div id="ai-calc-result"></div>
+      <div class="form-group"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
+      <div class="nutrients-row">
+        <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30"></div>
+        <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15"></div>
+        <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80"></div>
+      </div>
+      <br>
+      <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
+      <button class="btn btn-secondary" id="cancel-edit-btn" style="display:none" onclick="cancelEdit()">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="page" id="page-weekly">
+    <div class="card">
+      <h2>📊 過去7日間のカロリー</h2>
+      <div class="chart-bars" id="week-bars"></div>
+      <div class="week-stats">
+        <div class="week-stat"><div class="val" id="week-avg-cal">-</div><div class="lbl">平均kcal/日</div></div>
+        <div class="week-stat"><div class="val" id="week-total-cal">-</div><div class="lbl">週合計kcal</div></div>
+        <div class="week-stat"><div class="val" id="week-over-days">-</div><div class="lbl">目標超過日数</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🥗 週間栄養バランス</h2>
+      <div class="nutrient-cards">
+        <div class="nutrient-card protein"><div class="value" id="week-protein">0</div><div class="unit">g/日平均</div><div class="label">タンパク質</div></div>
+        <div class="nutrient-card fat"><div class="value" id="week-fat">0</div><div class="unit">g/日平均</div><div class="label">脂質</div></div>
+        <div class="nutrient-card carbs"><div class="value" id="week-carbs">0</div><div class="unit">g/日平均</div><div class="label">炭水化物</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-history">
+    <div class="card">
+      <h2>📅 記録履歴</h2>
+      <div id="history-list"><div class="empty">読み込み中...</div></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-settings">
+    <div class="card">
+      <h2>⚙️ 設定</h2>
+      <div class="settings-row">
+        <div><div class="settings-label">🎯 1日のカロリー目標</div><div class="settings-sub">現在の目標値を変更できます</div></div>
+        <input type="number" class="settings-input" id="settings-goal" value="2000">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">👤 目標タンパク質</div><div class="settings-sub">1日の目標（g）</div></div>
+        <input type="number" class="settings-input" id="settings-protein-goal" value="60">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">🧈 目標脂質</div><div class="settings-sub">1日の目標（g）</div></div>
+        <input type="number" class="settings-input" id="settings-fat-goal" value="65">
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">🍚 目標炭水化物</div><div class="settings-sub">1日の目標（g）</div></div>
+        <input type="number" class="settings-input" id="settings-carbs-goal" value="250">
+      </div>
+      <br>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 設定を保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h3>🗑️ 記録を削除</h3>
+    <p style="font-size:14px;color:#555;line-height:1.6">この食事記録を削除しますか？<br>この操作は元に戻せません。</p>
+    <button class="btn btn-primary" style="background:linear-gradient(135deg,#e74c3c,#c0392b)" onclick="confirmDelete()">削除する</button>
+    <button class="btn btn-secondary" onclick="closeDeleteModal()">キャンセル</button>
+  </div>
+</div>
+
+<script>
+function getLocalToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+let currentDate=getLocalToday();
+let selectedMealType='breakfast';
+let allMeals=[];
+let deletingId=null;
+let currentPhotoBase64=null;
+let settings={calorieGoal:2000,proteinGoal:60,fatGoal:65,carbsGoal:250};
+
+function loadSettings(){
+  try{const s=localStorage.getItem('meal_settings');if(s)settings=Object.assign(settings,JSON.parse(s));}catch(e){}
+  document.getElementById('settings-goal').value=settings.calorieGoal;
+  document.getElementById('settings-protein-goal').value=settings.proteinGoal;
+  document.getElementById('settings-fat-goal').value=settings.fatGoal;
+  document.getElementById('settings-carbs-goal').value=settings.carbsGoal;
+  document.getElementById('goal-display').textContent=settings.calorieGoal;
+}
+function saveSettings(){
+  settings.calorieGoal=parseInt(document.getElementById('settings-goal').value)||2000;
+  settings.proteinGoal=parseInt(document.getElementById('settings-protein-goal').value)||60;
+  settings.fatGoal=parseInt(document.getElementById('settings-fat-goal').value)||65;
+  settings.carbsGoal=parseInt(document.getElementById('settings-carbs-goal').value)||250;
+  localStorage.setItem('meal_settings',JSON.stringify(settings));
+  document.getElementById('goal-display').textContent=settings.calorieGoal;
+  renderHome();renderWeekly();
+  alert('設定を保存しました！');
+}
+function formatDateJP(dateStr){
+  const parts=dateStr.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
+}
+function formatDateShort(dateStr){
+  const parts=dateStr.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  return (d.getMonth()+1)+'/'+d.getDate();
+}
+function getDayLabel(dateStr){
+  const parts=dateStr.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  return ['日','月','火','水','木','金','土'][d.getDay()];
+}
+function addDays(dateStr,n){
+  const parts=dateStr.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+document.getElementById('header-date').textContent=formatDateJP(getLocalToday());
+document.getElementById('display-date').textContent=formatDateJP(currentDate);
+function changeDate(delta){
+  currentDate=addDays(currentDate,delta);
+  document.getElementById('display-date').textContent=formatDateJP(currentDate);
+  renderHome();
+}
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='history')renderHistory();
+  if(name==='weekly')renderWeekly();
+}
+function selectMealType(type){
+  selectedMealType=type;
+  ['breakfast','lunch','dinner','snack'].forEach(t=>{
+    document.getElementById('btn-'+t).classList.toggle('selected',t===type);
+  });
+}
+const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
+async function loadMeals(){
+  try{
+    const res=await fetch('/api/meals');
+    allMeals=await res.json();
+    if(!Array.isArray(allMeals))allMeals=[];
+    renderHome();
+  }catch(e){console.error(e)}
+}
+function escHtml(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// 栄養内訳を表示する関数
+function showNutritionBreakdown(parsed){
+  const resultDiv=document.getElementById('ai-calc-result');
+  let html="<div class='nutrition-breakdown'>";
+  if(parsed.items&&parsed.items.length>0){
+    parsed.items.forEach(item=>{
+      html+=`<div class='nutrition-item'>
+        <span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span>
+        <span class='nutrition-item-values'>${item.calories}kcal　P:${item.protein}g　F:${item.fat}g　C:${item.carbs}g</span>
+      </div>`;
+    });
+  }
+  html+=`<div class='nutrition-total'>
+    <span>📊 合計</span>
+    <span>${parsed.total.calories}kcal　P:${parsed.total.protein}g　F:${parsed.total.fat}g　C:${parsed.total.carbs}g</span>
+  </div>`;
+  html+="</div><div class='ai-bubble' style='margin-top:8px'>✅ AIが自動計算しました！\n内容を確認して「保存する」を押してください。</div>";
+  resultDiv.innerHTML=html;
+  document.getElementById('input-calories').value=parsed.total.calories||'';
+  document.getElementById('input-protein').value=parsed.total.protein||'';
+  document.getElementById('input-fat').value=parsed.total.fat||'';
+  document.getElementById('input-carbs').value=parsed.total.carbs||'';
+}
+
+// 写真処理
+function handlePhoto(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    currentPhotoBase64=e.target.result.split(',')[1];
+    const preview=document.getElementById('photo-preview');
+    preview.src=e.target.result;
+    preview.style.display='block';
+    document.getElementById('btn-analyze-photo').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// 写真からAI計算
+async function analyzePhoto(){
+  const resultDiv=document.getElementById('ai-calc-result');
+  if(!currentPhotoBase64){alert('写真を選んでください');return;}
+  resultDiv.innerHTML="<div class='ai-loading'><span>📷 AIが写真を分析中...</span></div>";
+  try{
+    const response=await fetch('/api/ai-advice',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        systemPrompt:`あなたは栄養士AIです。料理の写真を見て、各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください（説明文は不要）:{"meals":"ご飯、味噌汁、焼き魚、緑茶","items":[{"name":"ご飯","calories":250,"protein":4,"fat":0,"carbs":56},{"name":"味噌汁","calories":30,"protein":2,"fat":1,"carbs":4},{"name":"焼き魚","calories":150,"protein":20,"fat":8,"carbs":0},{"name":"緑茶","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":430,"protein":26,"fat":9,"carbs":60}}`,
+        prompt:'この料理の写真を分析して、各食品・飲み物ごとのカロリーと栄養素をJSON形式で教えてください。',
+        image:currentPhotoBase64
+      })
+    });
+    const data=await response.json();
+    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';
+    const clean=text.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    if(parsed.meals) document.getElementById('input-meals').value=parsed.meals;
+    showNutritionBreakdown(parsed);
+  }catch(e){
+    console.error(e);
+    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ 写真の分析に失敗しました。手動で入力してください。</div>";
+  }
+}
+
+// テキストからAI計算
+async function calcNutritionFromText(){
+  const meals=document.getElementById('input-meals').value.trim();
+  const resultDiv=document.getElementById('ai-calc-result');
+  if(!meals){alert('食事内容を入力してください');return;}
+  resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが計算中...</span></div>";
+  try{
+    const response=await fetch('/api/ai-advice',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        systemPrompt:`あなたは栄養士AIです。食事内容から各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください（説明文は不要）:{"items":[{"name":"ご飯","calories":250,"protein":4,"fat":0,"carbs":56},{"name":"味噌汁","calories":30,"protein":2,"fat":1,"carbs":4}],"total":{"calories":280,"protein":6,"fat":1,"carbs":60}}`,
+        prompt:`以下の食事・飲み物それぞれのカロリーと栄養素をJSON形式で教えてください:\n${meals}`
+      })
+    });
+    const data=await response.json();
+    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';
+    const clean=text.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    showNutritionBreakdown(parsed);
+  }catch(e){
+    console.error(e);
+    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ 計算に失敗しました。手動で入力してください。</div>";
+  }
+}
+
+function renderHome(){
+  const dayMeals=allMeals.filter(m=>m.date===currentDate);
+  const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+  const totalProtein=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
+  const totalFat=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
+  const totalCarbs=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
+  document.getElementById('today-calories').textContent=totalCal.toLocaleString();
+  document.getElementById('today-protein').textContent=totalProtein;
+  document.getElementById('today-fat').textContent=totalFat;
+  document.getElementById('today-carbs').textContent=totalCarbs;
+  document.getElementById('goal-display').textContent=settings.calorieGoal;
+  const pct=Math.min((totalCal/settings.calorieGoal)*100,100);
+  const bar=document.getElementById('calorie-progress');
+  bar.style.width=pct+'%';
+  bar.className='progress-fill'+(totalCal>settings.calorieGoal?' over':'');
+  const remain=settings.calorieGoal-totalCal;
+  document.getElementById('calorie-status').textContent=remain>0?'あと '+remain+' kcal':'目標を '+Math.abs(remain)+' kcal オーバー';
+  const mealOrder=['breakfast','lunch','dinner','snack'];
+  const html=mealOrder.map(type=>{
+    const items=dayMeals.filter(m=>m.meal_type===type);
+    if(items.length===0)return '';
+    return items.map(m=>`
+      <div class="meal-section ${type}">
+        <div class="meal-actions">
+          <button class="meal-action-btn" onclick="editMeal(${m.id})">✏️</button>
+          <button class="meal-action-btn delete" onclick="openDeleteModal(${m.id})">🗑️</button>
+        </div>
+        <div class="meal-type-label">${mealTypeLabels[type]||type}</div>
+        <div class="meal-content">${escHtml(m.meals_data)}</div>
+        <div class="meal-cal">${m.total_calories} kcal</div>
+        <div class="meal-nutrients">P:${m.protein||0}g　F:${m.fat||0}g　C:${m.carbs||0}g</div>
+      </div>`).join('');
+  }).join('');
+  document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";
+}
+function renderWeekly(){
+  const today=getLocalToday();
+  const days=[];
+  for(let i=6;i>=0;i--)days.push(addDays(today,-i));
+  const goal=settings.calorieGoal;
+  const cals=days.map(d=>allMeals.filter(m=>m.date===d).reduce((s,m)=>s+(m.total_calories||0),0));
+  const maxCal=Math.max(...cals,goal,1);
+  const barsHtml=days.map((d,i)=>{
+    const cal=cals[i];
+    const heightPct=Math.round((cal/maxCal)*100);
+    const over=cal>goal;
+    return `<div class="chart-col">
+      <div class="chart-bar-wrap">
+        <div class="chart-bar${over?' over':''}" style="height:${heightPct}%" title="${cal}kcal"></div>
+      </div>
+      <div class="chart-label">${getDayLabel(d)}</div>
+      <div class="chart-date">${formatDateShort(d)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('week-bars').innerHTML=barsHtml;
+  const activeDays=days.filter((_,i)=>cals[i]>0).length||1;
+  const totalCal=cals.reduce((a,b)=>a+b,0);
+  document.getElementById('week-avg-cal').textContent=Math.round(totalCal/activeDays).toLocaleString();
+  document.getElementById('week-total-cal').textContent=totalCal.toLocaleString();
+  document.getElementById('week-over-days').textContent=cals.filter(c=>c>goal).length+'日';
+  document.getElementById('week-protein').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.protein||0),0),0)/activeDays);
+  document.getElementById('week-fat').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.fat||0),0),0)/activeDays);
+  document.getElementById('week-carbs').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.carbs||0),0),0)/activeDays);
+}
+function renderHistory(){
+  const grouped={};
+  allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
+  const dates=Object.keys(grouped).sort().reverse();
+  const goal=settings.calorieGoal;
+  document.getElementById('history-list').innerHTML=dates.map(date=>{
+    const items=grouped[date];
+    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
+    const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
+    const totalF=items.reduce((s,m)=>s+(m.fat||0),0);
+    const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);
+    const over=total>goal;
+    return `<div class="history-item">
+      <div class="history-date-row">
+        <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="color:${over?'#e74c3c':'#667eea'};font-weight:bold">${total} kcal</span>
+          <span class="badge ${over?'badge-over':'badge-ok'}">${over?'超過':'達成'}</span>
+        </span>
+      </div>
+      <div class="history-nutrients">タンパク質 ${totalP}g　脂質 ${totalF}g　炭水化物 ${totalC}g</div>
+      <div>${items.map(m=>`<div class="history-meal-line"><span>${mealTypeLabels[m.meal_type]||''} ${escHtml(m.meals_data)}</span><span style="color:#999;white-space:nowrap;margin-left:8px">${m.total_calories}kcal</span></div>`).join('')}</div>
+    </div>`;
+  }).join('')||"<div class='empty'>履歴がありません</div>";
+}
+async function saveMeal(){
+  const editId=document.getElementById('edit-meal-id').value;
+  const date=document.getElementById('input-date').value;
+  const meals_data=document.getElementById('input-meals').value.trim();
+  const total_calories=parseInt(document.getElementById('input-calories').value)||0;
+  const protein=parseFloat(document.getElementById('input-protein').value)||0;
+  const fat=parseFloat(document.getElementById('input-fat').value)||0;
+  const carbs=parseFloat(document.getElementById('input-carbs').value)||0;
+  if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
+  try{
+    if(editId){
+      await fetch(`/api/meals/${editId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});
+      alert('更新しました！');
+    }else{
+      await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});
+      alert('保存しました！');
+    }
+    clearForm();await loadMeals();
+  }catch(e){console.error(e)}
+}
+function clearForm(){
+  document.getElementById('edit-meal-id').value='';
+  document.getElementById('input-meals').value='';
+  document.getElementById('input-calories').value='';
+  document.getElementById('input-protein').value='';
+  document.getElementById('input-fat').value='';
+  document.getElementById('input-carbs').value='';
+  document.getElementById('add-title').textContent='✏️ 食事を記録';
+  document.getElementById('cancel-edit-btn').style.display='none';
+  document.getElementById('input-date').value=getLocalToday();
+  document.getElementById('photo-preview').style.display='none';
+  document.getElementById('btn-analyze-photo').style.display='none';
+  document.getElementById('ai-calc-result').innerHTML='';
+  document.getElementById('photo-input').value='';
+  currentPhotoBase64=null;
+  selectMealType('breakfast');
+}
+function cancelEdit(){clearForm();}
+function editMeal(id){
+  const m=allMeals.find(x=>x.id===id);
+  if(!m)return;
+  document.getElementById('edit-meal-id').value=id;
+  document.getElementById('input-date').value=m.date;
+  document.getElementById('input-meals').value=m.meals_data;
+  document.getElementById('input-calories').value=m.total_calories||'';
+  document.getElementById('input-protein').value=m.protein||'';
+  document.getElementById('input-fat').value=m.fat||'';
+  document.getElementById('input-carbs').value=m.carbs||'';
+  selectMealType(m.meal_type||'breakfast');
+  document.getElementById('add-title').textContent='✏️ 食事を編集';
+  document.getElementById('cancel-edit-btn').style.display='block';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-add').classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  window.scrollTo(0,0);
+}
+function openDeleteModal(id){deletingId=id;document.getElementById('delete-modal').classList.add('open');}
+function closeDeleteModal(){deletingId=null;document.getElementById('delete-modal').classList.remove('open');}
+async function confirmDelete(){
+  if(!deletingId)return;
+  try{
+    await fetch(`/api/meals/${deletingId}`,{method:'DELETE'});
+    closeDeleteModal();await loadMeals();renderHistory();
+  }catch(e){console.error(e)}
+}
+document.getElementById('delete-modal').addEventListener('click',function(e){if(e.target===this)closeDeleteModal();});
+async function getAIAdvice(){
+  const dayMeals=allMeals.filter(m=>m.date===currentDate);
+  const resultDiv=document.getElementById('ai-result');
+  if(dayMeals.length===0){resultDiv.innerHTML="<div class='ai-bubble'>本日の食事がまだ記録されていません。\n食事を追加してから分析してください。</div>";return;}
+  const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+  const totalP=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
+  const totalF=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
+  const totalC=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
+  const mealSummary=dayMeals.map(m=>`【${mealTypeLabels[m.meal_type]||m.meal_type}】${m.meals_data}（${m.total_calories}kcal、P:${m.protein||0}g、F:${m.fat||0}g、C:${m.carbs||0}g）`).join('\n');
+  resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが分析中...</span></div>";
+  try{
+    const response=await fetch('/api/ai-advice',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        systemPrompt:`あなたは栄養士AIアシスタントです。ユーザーの食事記録を分析して、日本語で具体的で実践的なアドバイスを提供してください。カロリー目標: ${settings.calorieGoal}kcal、タンパク質目標: ${settings.proteinGoal}g、脂質目標: ${settings.fatGoal}g、炭水化物目標: ${settings.carbsGoal}g。アドバイスは200〜300文字程度で、絵文字を使って読みやすくしてください。`,
+        prompt:`本日の食事記録:\n${mealSummary}\n\n合計: ${totalCal}kcal、P:${totalP}g、F:${totalF}g、C:${totalC}g\n\nこの食事内容を分析して、改善点やアドバイスをください。`
+      })
+    });
+    const data=await response.json();
+    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'アドバイスを取得できませんでした。';
+    resultDiv.innerHTML=`<div class='ai-bubble'>${escHtml(text)}</div>`;
+  }catch(e){
+    console.error(e);
+    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ AI分析に失敗しました。</div>";
+  }
+}
+document.getElementById('input-date').value=getLocalToday();
+loadSettings();
+loadMeals();
+</script>
+</body>
+</html>

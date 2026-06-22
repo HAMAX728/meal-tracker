@@ -123,7 +123,6 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
 </style>
 </head>
 <body>
-
 <div class="auth-screen show" id="auth-screen">
   <div class="auth-box">
     <h2>🍽️ 食事トラッカー</h2>
@@ -132,41 +131,22 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
       <button type="button" class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">新規登録</button>
     </div>
     <div id="auth-login">
-      <div class="form-group">
-        <label>メールアドレス</label>
-        <input type="email" id="login-email" placeholder="example@email.com">
-      </div>
-      <div class="form-group">
-        <label>パスワード</label>
-        <input type="password" id="login-password" placeholder="パスワード">
-      </div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" placeholder="example@email.com"></div>
+      <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
       <button type="button" class="btn btn-primary" style="margin-top:16px" onclick="doLogin()">ログイン</button>
     </div>
     <div id="auth-register" style="display:none">
-      <div class="form-group">
-        <label>表示名</label>
-        <input type="text" id="register-name" placeholder="例：マックス">
-      </div>
-      <div class="form-group">
-        <label>メールアドレス</label>
-        <input type="email" id="register-email" placeholder="example@email.com">
-      </div>
-      <div class="form-group">
-        <label>パスワード（6文字以上）</label>
-        <input type="password" id="register-password" placeholder="パスワード">
-      </div>
+      <div class="form-group"><label>表示名</label><input type="text" id="register-name" placeholder="例：マックス"></div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="register-email" placeholder="example@email.com"></div>
+      <div class="form-group"><label>パスワード（6文字以上）</label><input type="password" id="register-password" placeholder="パスワード"></div>
       <button type="button" class="btn btn-primary" style="margin-top:16px" onclick="doRegister()">登録する</button>
     </div>
     <div class="auth-error" id="auth-error"></div>
   </div>
 </div>
-
 <div class="header">
   <h1>🍽️ 食事トラッカー</h1>
-  <div class="user-info-bar">
-    <span id="header-user">...</span>
-    <button type="button" class="logout-btn" onclick="doLogout()">ログアウト</button>
-  </div>
+  <div class="user-info-bar"><span id="header-user">...</span><button type="button" class="logout-btn" onclick="doLogout()">ログアウト</button></div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="showPage('home',this)">🏠 ホーム</div>
@@ -198,17 +178,13 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
         <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
       </div>
     </div>
-    <div class="card">
-      <h2>🍱 今日の食事</h2>
-      <div id="today-meals"><div class="empty">まだ記録がありません</div></div>
-    </div>
+    <div class="card"><h2>🍱 今日の食事</h2><div id="today-meals"><div class="empty">まだ記録がありません</div></div></div>
     <div class="card">
       <h2>🤖 AI栄養アドバイス</h2>
       <button type="button" class="btn btn-ai" onclick="getAIAdvice()">✨ 今日の食事を分析する</button>
       <div id="ai-result"></div>
     </div>
   </div>
-
   <div class="page" id="page-add">
     <div class="card">
       <h2 id="add-title">✏️ 食事を記録</h2>
@@ -250,7 +226,6 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
       <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display:none" onclick="cancelEdit()">キャンセル</button>
     </div>
   </div>
-
   <div class="page" id="page-weekly">
     <div class="card">
       <h2>📊 過去7日間のカロリー</h2>
@@ -270,34 +245,19 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
       </div>
     </div>
   </div>
-
   <div class="page" id="page-history">
-    <div class="card">
-      <h2>📅 記録履歴</h2>
-      <div id="history-list"><div class="empty">読み込み中...</div></div>
-    </div>
+    <div class="card"><h2>📅 記録履歴</h2><div id="history-list"><div class="empty">読み込み中...</div></div></div>
   </div>
-
   <div class="page" id="page-friends">
     <div class="card">
       <h2>🔍 友達を追加</h2>
-      <div class="form-group">
-        <label>メールアドレスで検索</label>
-        <input type="email" id="search-email" placeholder="friend@example.com">
-      </div>
+      <div class="form-group"><label>メールアドレスで検索</label><input type="email" id="search-email" placeholder="friend@example.com"></div>
       <button type="button" class="btn btn-primary btn-sm" onclick="searchFriend()">🔍 検索する</button>
       <div id="search-result"></div>
     </div>
-    <div class="card">
-      <h2>📬 申請中・承認待ち</h2>
-      <div id="pending-list"><div class="empty">なし</div></div>
-    </div>
-    <div class="card">
-      <h2>👥 友達一覧</h2>
-      <div id="friends-list"><div class="empty">まだ友達がいません</div></div>
-    </div>
+    <div class="card"><h2>📬 申請中・承認待ち</h2><div id="pending-list"><div class="empty">なし</div></div></div>
+    <div class="card"><h2>👥 友達一覧</h2><div id="friends-list"><div class="empty">まだ友達がいません</div></div></div>
   </div>
-
   <div class="page" id="page-friend-detail">
     <div class="card">
       <h2 id="friend-detail-name">友達の食事</h2>
@@ -316,13 +276,9 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
         <div class="nutrient-card carbs"><div class="value" id="friend-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
       </div>
     </div>
-    <div class="card">
-      <h2>🍱 食事内容</h2>
-      <div id="friend-meals"><div class="empty">記録がありません</div></div>
-    </div>
+    <div class="card"><h2>🍱 食事内容</h2><div id="friend-meals"><div class="empty">記録がありません</div></div></div>
     <button type="button" class="btn btn-secondary" onclick="showPage('friends',document.querySelectorAll('.tab')[4])">← 友達一覧に戻る</button>
   </div>
-
   <div class="page" id="page-settings">
     <div class="card">
       <h2>⚙️ 設定</h2>
@@ -348,7 +304,6 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
     </div>
   </div>
 </div>
-
 <div class="modal-overlay" id="delete-modal">
   <div class="modal">
     <h3>🗑️ 記録を削除</h3>
@@ -357,579 +312,56 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f0f4f8;min-height
     <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">キャンセル</button>
   </div>
 </div>
-
 <script>
-const _supabase = window.supabase.createClient(
-  'https://maoabwlhojqcfjcvxtxq.supabase.co',
-  'sb_publishable_iHhGeUUcXXxoStMmcqX03A_2HvNVd1x'
-);
-
-let currentDate = getLocalToday();
-let selectedMealType = 'breakfast';
-let allMeals = [];
-let deletingId = null;
-let currentPhotoBase64 = null;
-let currentUser = null;
-let currentToken = null;
-let friendMeals = [];
-let currentFriendId = null;
-let currentFriendDate = getLocalToday();
-let settings = {calorieGoal:2000,proteinGoal:60,fatGoal:65,carbsGoal:250};
-
-function getLocalToday(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-
-function switchAuthTab(tab){
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-register').classList.toggle('active', tab==='register');
-  document.getElementById('auth-login').style.display = tab==='login'?'block':'none';
-  document.getElementById('auth-register').style.display = tab==='register'?'block':'none';
-  document.getElementById('auth-error').classList.remove('show');
-}
-
-async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const password=document.getElementById('login-password').value;
-  if(!email||!password){showAuthError('メールとパスワードを入力してください');return;}
-  const{data,error}=await _supabase.auth.signInWithPassword({email,password});
-  if(error){showAuthError('ログインに失敗しました: '+error.message);return;}
-  await onLogin(data.session);
-}
-
-async function doRegister(){
-  const name=document.getElementById('register-name').value.trim();
-  const email=document.getElementById('register-email').value.trim();
-  const password=document.getElementById('register-password').value;
-  if(!name||!email||!password){showAuthError('全て入力してください');return;}
-  if(password.length<6){showAuthError('パスワードは6文字以上にしてください');return;}
-  const{data,error}=await _supabase.auth.signUp({email,password});
-  if(error){showAuthError('登録に失敗しました: '+error.message);return;}
-  if(data.session){
-    currentToken=data.session.access_token;
-    await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({display_name:name})});
-    await onLogin(data.session);
-  }else{
-    showAuthError('登録しました！ログインしてください。');
-    switchAuthTab('login');
-  }
-}
-
-function showAuthError(msg){
-  const el=document.getElementById('auth-error');
-  el.textContent=msg;
-  el.classList.add('show');
-}
-
-async function onLogin(session){
-  currentUser=session.user;
-  currentToken=session.access_token;
-  document.getElementById('auth-screen').classList.remove('show');
-  document.getElementById('header-user').textContent=currentUser.email;
-  loadSettings();
-  await loadMeals();
-  await loadFriends();
-}
-
-async function doLogout(){
-  await _supabase.auth.signOut();
-  currentUser=null;currentToken=null;allMeals=[];
-  document.getElementById('auth-screen').classList.add('show');
-}
-
-_supabase.auth.getSession().then(({data:{session}})=>{
-  if(session) onLogin(session);
-});
-
-function loadSettings(){
-  try{const s=localStorage.getItem('meal_settings');if(s)settings=Object.assign(settings,JSON.parse(s));}catch(e){}
-  document.getElementById('settings-goal').value=settings.calorieGoal;
-  document.getElementById('settings-protein-goal').value=settings.proteinGoal;
-  document.getElementById('settings-fat-goal').value=settings.fatGoal;
-  document.getElementById('settings-carbs-goal').value=settings.carbsGoal;
-  document.getElementById('goal-display').textContent=settings.calorieGoal;
-}
-
-function saveSettings(){
-  settings.calorieGoal=parseInt(document.getElementById('settings-goal').value)||2000;
-  settings.proteinGoal=parseInt(document.getElementById('settings-protein-goal').value)||60;
-  settings.fatGoal=parseInt(document.getElementById('settings-fat-goal').value)||65;
-  settings.carbsGoal=parseInt(document.getElementById('settings-carbs-goal').value)||250;
-  localStorage.setItem('meal_settings',JSON.stringify(settings));
-  document.getElementById('goal-display').textContent=settings.calorieGoal;
-  renderHome();renderWeekly();
-  alert('設定を保存しました！');
-}
-
-function formatDateJP(dateStr){
-  const parts=dateStr.split('-');
-  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
-}
-function formatDateShort(dateStr){
-  const parts=dateStr.split('-');
-  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  return (d.getMonth()+1)+'/'+d.getDate();
-}
-function getDayLabel(dateStr){
-  const parts=dateStr.split('-');
-  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  return ['日','月','火','水','木','金','土'][d.getDay()];
-}
-function addDays(dateStr,n){
-  const parts=dateStr.split('-');
-  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  d.setDate(d.getDate()+n);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-
+const _supabase=window.supabase.createClient('https://maoabwlhojqcfjcvxtxq.supabase.co','sb_publishable_iHhGeUUcXXxoStMmcqX03A_2HvNVd1x');
+let currentDate=getLocalToday(),selectedMealType='breakfast',allMeals=[],deletingId=null,currentPhotoBase64=null,currentUser=null,currentToken=null,friendMeals=[],currentFriendId=null,currentFriendDate=getLocalToday(),settings={calorieGoal:2000,proteinGoal:60,fatGoal:65,carbsGoal:250};
+function getLocalToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function switchAuthTab(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-register').classList.toggle('active',tab==='register');document.getElementById('auth-login').style.display=tab==='login'?'block':'none';document.getElementById('auth-register').style.display=tab==='register'?'block':'none';document.getElementById('auth-error').classList.remove('show');}
+async function doLogin(){const email=document.getElementById('login-email').value.trim();const password=document.getElementById('login-password').value;if(!email||!password){showAuthError('メールとパスワードを入力してください');return;}const{data,error}=await _supabase.auth.signInWithPassword({email,password});if(error){showAuthError('ログインに失敗しました: '+error.message);return;}await onLogin(data.session);}
+async function doRegister(){const name=document.getElementById('register-name').value.trim();const email=document.getElementById('register-email').value.trim();const password=document.getElementById('register-password').value;if(!name||!email||!password){showAuthError('全て入力してください');return;}if(password.length<6){showAuthError('パスワードは6文字以上にしてください');return;}const{data,error}=await _supabase.auth.signUp({email,password});if(error){showAuthError('登録に失敗しました: '+error.message);return;}if(data.session){currentToken=data.session.access_token;await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({display_name:name})});await onLogin(data.session);}else{showAuthError('登録しました！ログインしてください。');switchAuthTab('login');}}
+function showAuthError(msg){const el=document.getElementById('auth-error');el.textContent=msg;el.classList.add('show');}
+async function onLogin(session){currentUser=session.user;currentToken=session.access_token;document.getElementById('auth-screen').classList.remove('show');document.getElementById('header-user').textContent=currentUser.email;loadSettings();await loadMeals();await loadFriends();}
+async function doLogout(){await _supabase.auth.signOut();currentUser=null;currentToken=null;allMeals=[];document.getElementById('auth-screen').classList.add('show');}
+_supabase.auth.getSession().then(({data:{session}})=>{if(session)onLogin(session);});
+_supabase.auth.onAuthStateChange((event,session)=>{if(session){currentToken=session.access_token;if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')currentUser=session.user;}});
+function loadSettings(){try{const s=localStorage.getItem('meal_settings');if(s)settings=Object.assign(settings,JSON.parse(s));}catch(e){}document.getElementById('settings-goal').value=settings.calorieGoal;document.getElementById('settings-protein-goal').value=settings.proteinGoal;document.getElementById('settings-fat-goal').value=settings.fatGoal;document.getElementById('settings-carbs-goal').value=settings.carbsGoal;document.getElementById('goal-display').textContent=settings.calorieGoal;}
+function saveSettings(){settings.calorieGoal=parseInt(document.getElementById('settings-goal').value)||2000;settings.proteinGoal=parseInt(document.getElementById('settings-protein-goal').value)||60;settings.fatGoal=parseInt(document.getElementById('settings-fat-goal').value)||65;settings.carbsGoal=parseInt(document.getElementById('settings-carbs-goal').value)||250;localStorage.setItem('meal_settings',JSON.stringify(settings));document.getElementById('goal-display').textContent=settings.calorieGoal;renderHome();renderWeekly();alert('設定を保存しました！');}
+function formatDateJP(dateStr){const parts=dateStr.split('-');const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';}
+function formatDateShort(dateStr){const parts=dateStr.split('-');const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));return(d.getMonth()+1)+'/'+d.getDate();}
+function getDayLabel(dateStr){const parts=dateStr.split('-');const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));return['日','月','火','水','木','金','土'][d.getDay()];}
+function addDays(dateStr,n){const parts=dateStr.split('-');const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 document.getElementById('display-date').textContent=formatDateJP(currentDate);
-
-function changeDate(delta){
-  currentDate=addDays(currentDate,delta);
-  document.getElementById('display-date').textContent=formatDateJP(currentDate);
-  renderHome();
-}
-function changeFriendDate(delta){
-  currentFriendDate=addDays(currentFriendDate,delta);
-  document.getElementById('friend-display-date').textContent=formatDateJP(currentFriendDate);
-  renderFriendDetail();
-}
-
-function showPage(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  if(el) el.classList.add('active');
-  if(name==='history')renderHistory();
-  if(name==='weekly')renderWeekly();
-  if(name==='friends')loadFriends();
-}
-
-function selectMealType(type){
-  selectedMealType=type;
-  ['breakfast','lunch','dinner','snack'].forEach(t=>{
-    document.getElementById('btn-'+t).classList.toggle('selected',t===type);
-  });
-}
+function changeDate(delta){currentDate=addDays(currentDate,delta);document.getElementById('display-date').textContent=formatDateJP(currentDate);renderHome();}
+function changeFriendDate(delta){currentFriendDate=addDays(currentFriendDate,delta);document.getElementById('friend-display-date').textContent=formatDateJP(currentFriendDate);renderFriendDetail();}
+function showPage(name,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');if(name==='history')renderHistory();if(name==='weekly')renderWeekly();if(name==='friends')loadFriends();}
+function selectMealType(type){selectedMealType=type;['breakfast','lunch','dinner','snack'].forEach(t=>{document.getElementById('btn-'+t).classList.toggle('selected',t===type);});}
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
-
-async function loadMeals(){
-  if(!currentToken)return;
-  try{
-    const res=await fetch('/api/meals',{headers:{'Authorization':'Bearer '+currentToken}});
-    allMeals=await res.json();
-    if(!Array.isArray(allMeals))allMeals=[];
-    renderHome();
-  }catch(e){console.error(e)}
-}
-
-function escHtml(str){
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function renderHome(){
-  const dayMeals=allMeals.filter(m=>m.date===currentDate);
-  const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
-  const totalProtein=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
-  const totalFat=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
-  const totalCarbs=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
-  document.getElementById('today-calories').textContent=totalCal.toLocaleString();
-  document.getElementById('today-protein').textContent=totalProtein;
-  document.getElementById('today-fat').textContent=totalFat;
-  document.getElementById('today-carbs').textContent=totalCarbs;
-  document.getElementById('goal-display').textContent=settings.calorieGoal;
-  const pct=Math.min((totalCal/settings.calorieGoal)*100,100);
-  const bar=document.getElementById('calorie-progress');
-  bar.style.width=pct+'%';
-  bar.className='progress-fill'+(totalCal>settings.calorieGoal?' over':'');
-  const remain=settings.calorieGoal-totalCal;
-  document.getElementById('calorie-status').textContent=remain>0?'あと '+remain+' kcal':'目標を '+Math.abs(remain)+' kcal オーバー';
-  const mealOrder=['breakfast','lunch','dinner','snack'];
-  const html=mealOrder.map(type=>{
-    const items=dayMeals.filter(m=>m.meal_type===type);
-    if(items.length===0)return '';
-    return items.map(m=>`
-      <div class="meal-section ${type}">
-        <div class="meal-actions">
-          <button type="button" class="meal-action-btn" onclick="editMeal(${m.id})">✏️</button>
-          <button type="button" class="meal-action-btn delete" onclick="openDeleteModal(${m.id})">🗑️</button>
-        </div>
-        <div class="meal-type-label">${mealTypeLabels[type]||type}</div>
-        <div class="meal-content">${escHtml(m.meals_data)}</div>
-        <div class="meal-cal">${m.total_calories} kcal</div>
-        <div class="meal-nutrients">P:${m.protein||0}g　F:${m.fat||0}g　C:${m.carbs||0}g</div>
-      </div>`).join('');
-  }).join('');
-  document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";
-}
-
-function renderWeekly(){
-  const today=getLocalToday();
-  const days=[];
-  for(let i=6;i>=0;i--)days.push(addDays(today,-i));
-  const goal=settings.calorieGoal;
-  const cals=days.map(d=>allMeals.filter(m=>m.date===d).reduce((s,m)=>s+(m.total_calories||0),0));
-  const maxCal=Math.max(...cals,goal,1);
-  document.getElementById('week-bars').innerHTML=days.map((d,i)=>{
-    const cal=cals[i];
-    const heightPct=Math.round((cal/maxCal)*100);
-    return `<div class="chart-col">
-      <div class="chart-bar-wrap">
-        <div class="chart-bar${cal>goal?' over':''}" style="height:${heightPct}%" title="${cal}kcal"></div>
-      </div>
-      <div class="chart-label">${getDayLabel(d)}</div>
-      <div class="chart-date">${formatDateShort(d)}</div>
-    </div>`;
-  }).join('');
-  const activeDays=days.filter((_,i)=>cals[i]>0).length||1;
-  const totalCal=cals.reduce((a,b)=>a+b,0);
-  document.getElementById('week-avg-cal').textContent=Math.round(totalCal/activeDays).toLocaleString();
-  document.getElementById('week-total-cal').textContent=totalCal.toLocaleString();
-  document.getElementById('week-over-days').textContent=cals.filter(c=>c>goal).length+'日';
-  document.getElementById('week-protein').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.protein||0),0),0)/activeDays);
-  document.getElementById('week-fat').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.fat||0),0),0)/activeDays);
-  document.getElementById('week-carbs').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.carbs||0),0),0)/activeDays);
-}
-
-function renderHistory(){
-  const grouped={};
-  allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
-  const dates=Object.keys(grouped).sort().reverse();
-  const goal=settings.calorieGoal;
-  document.getElementById('history-list').innerHTML=dates.map(date=>{
-    const items=grouped[date];
-    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
-    const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
-    const totalF=items.reduce((s,m)=>s+(m.fat||0),0);
-    const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);
-    const over=total>goal;
-    return `<div class="history-item">
-      <div class="history-date-row">
-        <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
-        <span style="display:flex;align-items:center;gap:6px">
-          <span style="color:${over?'#e74c3c':'#667eea'};font-weight:bold">${total} kcal</span>
-          <span class="badge ${over?'badge-over':'badge-ok'}">${over?'超過':'達成'}</span>
-        </span>
-      </div>
-      <div class="history-nutrients">P:${totalP}g　F:${totalF}g　C:${totalC}g</div>
-      <div>${items.map(m=>`<div class="history-meal-line"><span>${mealTypeLabels[m.meal_type]||''} ${escHtml(m.meals_data)}</span><span style="color:#999;white-space:nowrap;margin-left:8px">${m.total_calories}kcal</span></div>`).join('')}</div>
-    </div>`;
-  }).join('')||"<div class='empty'>履歴がありません</div>";
-}
-
-async function saveMeal(){
-  if(!currentToken){alert('ログインしてください');return;}
-  const editId=document.getElementById('edit-meal-id').value;
-  const date=document.getElementById('input-date').value;
-  const meals_data=document.getElementById('input-meals').value.trim();
-  const total_calories=parseInt(document.getElementById('input-calories').value)||0;
-  const protein=parseFloat(document.getElementById('input-protein').value)||0;
-  const fat=parseFloat(document.getElementById('input-fat').value)||0;
-  const carbs=parseFloat(document.getElementById('input-carbs').value)||0;
-  if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
-  try{
-    const headers={'Content-Type':'application/json','Authorization':'Bearer '+currentToken};
-    if(editId){
-      await fetch(`/api/meals/${editId}`,{method:'PUT',headers,body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});
-      alert('更新しました！');
-    }else{
-      await fetch('/api/meals',{method:'POST',headers,body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});
-      alert('保存しました！');
-    }
-    clearForm();await loadMeals();
-  }catch(e){console.error(e)}
-}
-
-function clearForm(){
-  document.getElementById('edit-meal-id').value='';
-  document.getElementById('input-meals').value='';
-  document.getElementById('input-calories').value='';
-  document.getElementById('input-protein').value='';
-  document.getElementById('input-fat').value='';
-  document.getElementById('input-carbs').value='';
-  document.getElementById('add-title').textContent='✏️ 食事を記録';
-  document.getElementById('cancel-edit-btn').style.display='none';
-  document.getElementById('input-date').value=getLocalToday();
-  document.getElementById('photo-preview').style.display='none';
-  document.getElementById('btn-analyze-photo').style.display='none';
-  document.getElementById('ai-calc-result').innerHTML='';
-  document.getElementById('photo-input').value='';
-  currentPhotoBase64=null;
-  selectMealType('breakfast');
-}
+async function loadMeals(){if(!currentToken)return;try{const res=await fetch('/api/meals',{headers:{'Authorization':'Bearer '+currentToken}});allMeals=await res.json();if(!Array.isArray(allMeals))allMeals=[];renderHome();}catch(e){console.error(e);}}
+function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderHome(){const dayMeals=allMeals.filter(m=>m.date===currentDate);const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);const totalProtein=dayMeals.reduce((s,m)=>s+(m.protein||0),0);const totalFat=dayMeals.reduce((s,m)=>s+(m.fat||0),0);const totalCarbs=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);document.getElementById('today-calories').textContent=totalCal.toLocaleString();document.getElementById('today-protein').textContent=totalProtein;document.getElementById('today-fat').textContent=totalFat;document.getElementById('today-carbs').textContent=totalCarbs;document.getElementById('goal-display').textContent=settings.calorieGoal;const pct=Math.min((totalCal/settings.calorieGoal)*100,100);const bar=document.getElementById('calorie-progress');bar.style.width=pct+'%';bar.className='progress-fill'+(totalCal>settings.calorieGoal?' over':'');const remain=settings.calorieGoal-totalCal;document.getElementById('calorie-status').textContent=remain>0?'あと '+remain+' kcal':'目標を '+Math.abs(remain)+' kcal オーバー';const mealOrder=['breakfast','lunch','dinner','snack'];const html=mealOrder.map(type=>{const items=dayMeals.filter(m=>m.meal_type===type);if(items.length===0)return '';return items.map(m=>`<div class="meal-section ${type}"><div class="meal-actions"><button type="button" class="meal-action-btn" onclick="editMeal(${m.id})">✏️</button><button type="button" class="meal-action-btn delete" onclick="openDeleteModal(${m.id})">🗑️</button></div><div class="meal-type-label">${mealTypeLabels[type]||type}</div><div class="meal-content">${escHtml(m.meals_data)}</div><div class="meal-cal">${m.total_calories} kcal</div><div class="meal-nutrients">P:${m.protein||0}g　F:${m.fat||0}g　C:${m.carbs||0}g</div></div>`).join('');}).join('');document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";}
+function renderWeekly(){const today=getLocalToday();const days=[];for(let i=6;i>=0;i--)days.push(addDays(today,-i));const goal=settings.calorieGoal;const cals=days.map(d=>allMeals.filter(m=>m.date===d).reduce((s,m)=>s+(m.total_calories||0),0));const maxCal=Math.max(...cals,goal,1);document.getElementById('week-bars').innerHTML=days.map((d,i)=>{const cal=cals[i];const heightPct=Math.round((cal/maxCal)*100);return`<div class="chart-col"><div class="chart-bar-wrap"><div class="chart-bar${cal>goal?' over':''}" style="height:${heightPct}%" title="${cal}kcal"></div></div><div class="chart-label">${getDayLabel(d)}</div><div class="chart-date">${formatDateShort(d)}</div></div>`;}).join('');const activeDays=days.filter((_,i)=>cals[i]>0).length||1;const totalCal=cals.reduce((a,b)=>a+b,0);document.getElementById('week-avg-cal').textContent=Math.round(totalCal/activeDays).toLocaleString();document.getElementById('week-total-cal').textContent=totalCal.toLocaleString();document.getElementById('week-over-days').textContent=cals.filter(c=>c>goal).length+'日';document.getElementById('week-protein').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.protein||0),0),0)/activeDays);document.getElementById('week-fat').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.fat||0),0),0)/activeDays);document.getElementById('week-carbs').textContent=Math.round(days.reduce((s,d)=>s+allMeals.filter(m=>m.date===d).reduce((ss,m)=>ss+(m.carbs||0),0),0)/activeDays);}
+function renderHistory(){const grouped={};allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});const dates=Object.keys(grouped).sort().reverse();const goal=settings.calorieGoal;document.getElementById('history-list').innerHTML=dates.map(date=>{const items=grouped[date];const total=items.reduce((s,m)=>s+(m.total_calories||0),0);const totalP=items.reduce((s,m)=>s+(m.protein||0),0);const totalF=items.reduce((s,m)=>s+(m.fat||0),0);const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);const over=total>goal;return`<div class="history-item"><div class="history-date-row"><span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span><span style="display:flex;align-items:center;gap:6px"><span style="color:${over?'#e74c3c':'#667eea'};font-weight:bold">${total} kcal</span><span class="badge ${over?'badge-over':'badge-ok'}">${over?'超過':'達成'}</span></span></div><div class="history-nutrients">P:${totalP}g　F:${totalF}g　C:${totalC}g</div><div>${items.map(m=>`<div class="history-meal-line"><span>${mealTypeLabels[m.meal_type]||''} ${escHtml(m.meals_data)}</span><span style="color:#999;white-space:nowrap;margin-left:8px">${m.total_calories}kcal</span></div>`).join('')}</div></div>`;}).join('')||"<div class='empty'>履歴がありません</div>";}
+async function saveMeal(){if(!currentToken){alert('ログインしてください');return;}const editId=document.getElementById('edit-meal-id').value;const date=document.getElementById('input-date').value;const meals_data=document.getElementById('input-meals').value.trim();const total_calories=parseInt(document.getElementById('input-calories').value)||0;const protein=parseFloat(document.getElementById('input-protein').value)||0;const fat=parseFloat(document.getElementById('input-fat').value)||0;const carbs=parseFloat(document.getElementById('input-carbs').value)||0;if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}try{const headers={'Content-Type':'application/json','Authorization':'Bearer '+currentToken};if(editId){await fetch(`/api/meals/${editId}`,{method:'PUT',headers,body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});alert('更新しました！');}else{await fetch('/api/meals',{method:'POST',headers,body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});alert('保存しました！');}clearForm();await loadMeals();}catch(e){console.error(e);}}
+function clearForm(){document.getElementById('edit-meal-id').value='';document.getElementById('input-meals').value='';document.getElementById('input-calories').value='';document.getElementById('input-protein').value='';document.getElementById('input-fat').value='';document.getElementById('input-carbs').value='';document.getElementById('add-title').textContent='✏️ 食事を記録';document.getElementById('cancel-edit-btn').style.display='none';document.getElementById('input-date').value=getLocalToday();document.getElementById('photo-preview').style.display='none';document.getElementById('btn-analyze-photo').style.display='none';document.getElementById('ai-calc-result').innerHTML='';document.getElementById('photo-input').value='';currentPhotoBase64=null;selectMealType('breakfast');}
 function cancelEdit(){clearForm();}
-
-function editMeal(id){
-  const m=allMeals.find(x=>x.id===id);
-  if(!m)return;
-  document.getElementById('edit-meal-id').value=id;
-  document.getElementById('input-date').value=m.date;
-  document.getElementById('input-meals').value=m.meals_data;
-  document.getElementById('input-calories').value=m.total_calories||'';
-  document.getElementById('input-protein').value=m.protein||'';
-  document.getElementById('input-fat').value=m.fat||'';
-  document.getElementById('input-carbs').value=m.carbs||'';
-  selectMealType(m.meal_type||'breakfast');
-  document.getElementById('add-title').textContent='✏️ 食事を編集';
-  document.getElementById('cancel-edit-btn').style.display='block';
-  showPage('add',document.querySelectorAll('.tab')[1]);
-  window.scrollTo(0,0);
-}
-
+function editMeal(id){const m=allMeals.find(x=>x.id===id);if(!m)return;document.getElementById('edit-meal-id').value=id;document.getElementById('input-date').value=m.date;document.getElementById('input-meals').value=m.meals_data;document.getElementById('input-calories').value=m.total_calories||'';document.getElementById('input-protein').value=m.protein||'';document.getElementById('input-fat').value=m.fat||'';document.getElementById('input-carbs').value=m.carbs||'';selectMealType(m.meal_type||'breakfast');document.getElementById('add-title').textContent='✏️ 食事を編集';document.getElementById('cancel-edit-btn').style.display='block';showPage('add',document.querySelectorAll('.tab')[1]);window.scrollTo(0,0);}
 function openDeleteModal(id){deletingId=id;document.getElementById('delete-modal').classList.add('open');}
 function closeDeleteModal(){deletingId=null;document.getElementById('delete-modal').classList.remove('open');}
-async function confirmDelete(){
-  if(!deletingId||!currentToken)return;
-  try{
-    await fetch(`/api/meals/${deletingId}`,{method:'DELETE',headers:{'Authorization':'Bearer '+currentToken}});
-    closeDeleteModal();await loadMeals();
-  }catch(e){console.error(e)}
-}
+async function confirmDelete(){if(!deletingId||!currentToken)return;try{await fetch(`/api/meals/${deletingId}`,{method:'DELETE',headers:{'Authorization':'Bearer '+currentToken}});closeDeleteModal();await loadMeals();}catch(e){console.error(e);}}
 document.getElementById('delete-modal').addEventListener('click',function(e){if(e.target===this)closeDeleteModal();});
-
-function handlePhoto(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    currentPhotoBase64=e.target.result.split(',')[1];
-    const preview=document.getElementById('photo-preview');
-    preview.src=e.target.result;
-    preview.style.display='block';
-    document.getElementById('btn-analyze-photo').style.display='block';
-  };
-  reader.readAsDataURL(file);
-}
-
-async function analyzePhoto(){
-  const resultDiv=document.getElementById('ai-calc-result');
-  if(!currentPhotoBase64){alert('写真を選んでください');return;}
-  resultDiv.innerHTML="<div class='ai-loading'><span>📷 AIが写真を分析中...</span></div>";
-  try{
-    const response=await fetch('/api/ai-advice',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},
-      body:JSON.stringify({
-        systemPrompt:`あなたは栄養士AIです。料理の写真を見て、各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください:{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}`,
-        prompt:'この料理の写真を分析して、各食品・飲み物ごとのカロリーと栄養素をJSON形式で教えてください。',
-        image:currentPhotoBase64
-      })
-    });
-    const data=await response.json();
-    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';
-    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
-    if(parsed.meals)document.getElementById('input-meals').value=parsed.meals;
-    showNutritionBreakdown(parsed);
-  }catch(e){
-    document.getElementById('ai-calc-result').innerHTML="<div class='ai-bubble'>⚠️ 写真の分析に失敗しました。</div>";
-  }
-}
-
-async function calcNutritionFromText(){
-  const meals=document.getElementById('input-meals').value.trim();
-  const resultDiv=document.getElementById('ai-calc-result');
-  if(!meals){alert('食事内容を入力してください');return;}
-  resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが計算中...</span></div>";
-  try{
-    const response=await fetch('/api/ai-advice',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},
-      body:JSON.stringify({
-        systemPrompt:`あなたは栄養士AIです。食事内容から各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください:{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}`,
-        prompt:`以下の食事・飲み物それぞれのカロリーと栄養素をJSON形式で教えてください:\n${meals}`
-      })
-    });
-    const data=await response.json();
-    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';
-    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
-    showNutritionBreakdown(parsed);
-  }catch(e){
-    document.getElementById('ai-calc-result').innerHTML="<div class='ai-bubble'>⚠️ 計算に失敗しました。</div>";
-  }
-}
-
-function showNutritionBreakdown(parsed){
-  const resultDiv=document.getElementById('ai-calc-result');
-  let html="<div class='nutrition-breakdown'>";
-  if(parsed.items&&parsed.items.length>0){
-    parsed.items.forEach(item=>{
-      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal　P:${item.protein}g　F:${item.fat}g　C:${item.carbs}g</span></div>`;
-    });
-  }
-  html+=`<div class='nutrition-total'><span>📊 合計</span><span>${parsed.total.calories}kcal　P:${parsed.total.protein}g　F:${parsed.total.fat}g　C:${parsed.total.carbs}g</span></div></div><div class='ai-bubble' style='margin-top:8px'>✅ AIが自動計算しました！内容を確認して「保存する」を押してください。</div>`;
-  resultDiv.innerHTML=html;
-  document.getElementById('input-calories').value=parsed.total.calories||'';
-  document.getElementById('input-protein').value=parsed.total.protein||'';
-  document.getElementById('input-fat').value=parsed.total.fat||'';
-  document.getElementById('input-carbs').value=parsed.total.carbs||'';
-}
-
-async function getAIAdvice(){
-  const dayMeals=allMeals.filter(m=>m.date===currentDate);
-  const resultDiv=document.getElementById('ai-result');
-  if(dayMeals.length===0){resultDiv.innerHTML="<div class='ai-bubble'>本日の食事がまだ記録されていません。</div>";return;}
-  const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
-  const totalP=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
-  const totalF=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
-  const totalC=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
-  const mealSummary=dayMeals.map(m=>`【${mealTypeLabels[m.meal_type]||m.meal_type}】${m.meals_data}（${m.total_calories}kcal、P:${m.protein||0}g、F:${m.fat||0}g、C:${m.carbs||0}g）`).join('\n');
-  resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが分析中...</span></div>";
-  try{
-    const response=await fetch('/api/ai-advice',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},
-      body:JSON.stringify({
-        systemPrompt:`あなたは栄養士AIアシスタントです。ユーザーの食事記録を分析して、日本語で具体的で実践的なアドバイスを提供してください。カロリー目標: ${settings.calorieGoal}kcal。アドバイスは200〜300文字程度で、絵文字を使って読みやすくしてください。`,
-        prompt:`本日の食事:\n${mealSummary}\n\n合計: ${totalCal}kcal、P:${totalP}g、F:${totalF}g、C:${totalC}g\n\n改善点やアドバイスをください。`
-      })
-    });
-    const data=await response.json();
-    const text=data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'アドバイスを取得できませんでした。';
-    resultDiv.innerHTML=`<div class='ai-bubble'>${escHtml(text)}</div>`;
-  }catch(e){
-    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ AI分析に失敗しました。</div>";
-  }
-}
-
-async function searchFriend(){
-  const email=document.getElementById('search-email').value.trim();
-  if(!email){alert('メールアドレスを入力してください');return;}
-  const resultDiv=document.getElementById('search-result');
-  resultDiv.innerHTML="<div class='ai-loading'><span>検索中...</span></div>";
-  try{
-    const res=await fetch(`/api/search-user?email=${encodeURIComponent(email)}`,{headers:{'Authorization':'Bearer '+currentToken}});
-    if(!res.ok){resultDiv.innerHTML="<div class='empty'>ユーザーが見つかりませんでした</div>";return;}
-    const user=await res.json();
-    resultDiv.innerHTML=`<div class='friend-card'>
-      <div class='friend-info'>
-        <div class='friend-name'>${escHtml(user.display_name||'名前未設定')}</div>
-        <div class='friend-email'>${escHtml(user.email)}</div>
-      </div>
-      <button type="button" class='friend-btn accept' onclick='sendFriendRequest("${user.id}")'>申請する</button>
-    </div>`;
-  }catch(e){
-    resultDiv.innerHTML="<div class='empty'>エラーが発生しました</div>";
-  }
-}
-
-async function sendFriendRequest(receiverId){
-  try{
-    const res=await fetch('/api/friendships',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({receiver_id:receiverId})});
-    if(res.ok){
-      alert('友達申請を送りました！');
-      document.getElementById('search-result').innerHTML='';
-      document.getElementById('search-email').value='';
-      loadFriends();
-    }else{
-      alert('申請に失敗しました。すでに申請済みかもしれません。');
-    }
-  }catch(e){console.error(e)}
-}
-
-async function loadFriends(){
-  if(!currentToken)return;
-  try{
-    const res=await fetch('/api/friendships',{headers:{'Authorization':'Bearer '+currentToken}});
-    const friendships=await res.json();
-    if(!Array.isArray(friendships))return;
-    const pending=friendships.filter(f=>f.status==='pending');
-    const accepted=friendships.filter(f=>f.status==='accepted');
-    const pendingHtml=pending.map(f=>{
-      const isReceiver=f.receiver_id===currentUser.id;
-      const other=isReceiver?f.requester:f.receiver;
-      if(!other)return '';
-      if(isReceiver){
-        return `<div class='friend-card'>
-          <div class='friend-info'>
-            <div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div>
-            <div class='friend-email'>${escHtml(other.email)}</div>
-          </div>
-          <div class='friend-actions'>
-            <button type="button" class='friend-btn accept' onclick='respondFriendship(${f.id},"accepted")'>承認</button>
-            <button type="button" class='friend-btn reject' onclick='respondFriendship(${f.id},"rejected")'>拒否</button>
-          </div>
-        </div>`;
-      }else{
-        return `<div class='friend-card'>
-          <div class='friend-info'>
-            <div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div>
-            <div class='friend-email'>${escHtml(other.email)}</div>
-          </div>
-          <span class='badge badge-pending'>申請中</span>
-        </div>`;
-      }
-    }).join('');
-    document.getElementById('pending-list').innerHTML=pendingHtml||"<div class='empty'>なし</div>";
-    const friendsHtml=accepted.map(f=>{
-      const other=f.requester_id===currentUser.id?f.receiver:f.requester;
-      if(!other)return '';
-      return `<div class='friend-card'>
-        <div class='friend-info'>
-          <div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div>
-          <div class='friend-email'>${escHtml(other.email)}</div>
-        </div>
-        <div class='friend-actions'>
-          <button type="button" class='friend-btn view' onclick='viewFriend("${other.id}","${escHtml(other.display_name||other.email)}")'>食事を見る</button>
-          <button type="button" class='friend-btn delete' onclick='deleteFriendship(${f.id})'>削除</button>
-        </div>
-      </div>`;
-    }).join('');
-    document.getElementById('friends-list').innerHTML=friendsHtml||"<div class='empty'>まだ友達がいません</div>";
-  }catch(e){console.error(e)}
-}
-
-async function respondFriendship(id,status){
-  await fetch(`/api/friendships/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({status})});
-  loadFriends();
-}
-
-async function deleteFriendship(id){
-  if(!confirm('友達を削除しますか？'))return;
-  await fetch(`/api/friendships/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+currentToken}});
-  loadFriends();
-}
-
-async function viewFriend(friendId,friendName){
-  currentFriendId=friendId;
-  currentFriendDate=getLocalToday();
-  document.getElementById('friend-detail-name').textContent='🍱 '+friendName+'の食事';
-  document.getElementById('friend-display-date').textContent=formatDateJP(currentFriendDate);
-  try{
-    const res=await fetch(`/api/friend-meals/${friendId}`,{headers:{'Authorization':'Bearer '+currentToken}});
-    friendMeals=await res.json();
-    if(!Array.isArray(friendMeals))friendMeals=[];
-  }catch(e){friendMeals=[];}
-  renderFriendDetail();
-  showPage('friend-detail',null);
-}
-
-function renderFriendDetail(){
-  const dayMeals=friendMeals.filter(m=>m.date===currentFriendDate);
-  const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
-  const totalP=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
-  const totalF=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
-  const totalC=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
-  document.getElementById('friend-calories').textContent=totalCal.toLocaleString();
-  document.getElementById('friend-protein').textContent=totalP;
-  document.getElementById('friend-fat').textContent=totalF;
-  document.getElementById('friend-carbs').textContent=totalC;
-  const mealOrder=['breakfast','lunch','dinner','snack'];
-  const html=mealOrder.map(type=>{
-    const items=dayMeals.filter(m=>m.meal_type===type);
-    if(items.length===0)return '';
-    return items.map(m=>`
-      <div class="meal-section ${type}">
-        <div class="meal-type-label">${mealTypeLabels[type]||type}</div>
-        <div class="meal-content">${escHtml(m.meals_data)}</div>
-        <div class="meal-cal">${m.total_calories} kcal</div>
-        <div class="meal-nutrients">P:${m.protein||0}g　F:${m.fat||0}g　C:${m.carbs||0}g</div>
-      </div>`).join('');
-  }).join('');
-  document.getElementById('friend-meals').innerHTML=html||"<div class='empty'>この日の記録がありません</div>";
-}
-
+function handlePhoto(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){currentPhotoBase64=e.target.result.split(',')[1];const preview=document.getElementById('photo-preview');preview.src=e.target.result;preview.style.display='block';document.getElementById('btn-analyze-photo').style.display='block';};reader.readAsDataURL(file);}
+async function callAI(systemPrompt,userPrompt,imageBase64=null){const messages=[];if(imageBase64){messages.push({role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageBase64}},{type:'text',text:userPrompt}]});}else{messages.push({role:'user',content:userPrompt});}const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:systemPrompt,messages:messages})});const data=await res.json();if(data.error)throw new Error(JSON.stringify(data.error));return data.content&&data.content[0]&&data.content[0].text?data.content[0].text:'';}
+async function analyzePhoto(){const resultDiv=document.getElementById('ai-calc-result');if(!currentPhotoBase64){alert('写真を選んでください');return;}resultDiv.innerHTML="<div class='ai-loading'><span>📷 AIが写真を分析中...</span></div>";try{const text=await callAI('あなたは栄養士AIです。料理の写真を見て、各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}','この料理の写真を分析して、各食品・飲み物ごとのカロリーと栄養素をJSON形式で教えてください。',currentPhotoBase64);const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());if(parsed.meals)document.getElementById('input-meals').value=parsed.meals;showNutritionBreakdown(parsed);}catch(e){console.error(e);document.getElementById('ai-calc-result').innerHTML="<div class='ai-bubble'>⚠️ 写真の分析に失敗しました。</div>";}}
+async function calcNutritionFromText(){const meals=document.getElementById('input-meals').value.trim();const resultDiv=document.getElementById('ai-calc-result');if(!meals){alert('食事内容を入力してください');return;}resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが計算中...</span></div>";try{const text=await callAI('あなたは栄養士AIです。食事内容から各食品・飲み物ごとのカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答してください（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',`以下の食事・飲み物それぞれのカロリーと栄養素をJSON形式で教えてください:\n${meals}`);const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());showNutritionBreakdown(parsed);}catch(e){console.error(e);document.getElementById('ai-calc-result').innerHTML="<div class='ai-bubble'>⚠️ 計算に失敗しました。</div>";}}
+function showNutritionBreakdown(parsed){const resultDiv=document.getElementById('ai-calc-result');let html="<div class='nutrition-breakdown'>";if(parsed.items&&parsed.items.length>0){parsed.items.forEach(item=>{html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal　P:${item.protein}g　F:${item.fat}g　C:${item.carbs}g</span></div>`;});}html+=`<div class='nutrition-total'><span>📊 合計</span><span>${parsed.total.calories}kcal　P:${parsed.total.protein}g　F:${parsed.total.fat}g　C:${parsed.total.carbs}g</span></div></div><div class='ai-bubble' style='margin-top:8px'>✅ AIが自動計算しました！内容を確認して「保存する」を押してください。</div>`;resultDiv.innerHTML=html;document.getElementById('input-calories').value=parsed.total.calories||'';document.getElementById('input-protein').value=parsed.total.protein||'';document.getElementById('input-fat').value=parsed.total.fat||'';document.getElementById('input-carbs').value=parsed.total.carbs||'';}
+async function getAIAdvice(){const dayMeals=allMeals.filter(m=>m.date===currentDate);const resultDiv=document.getElementById('ai-result');if(dayMeals.length===0){resultDiv.innerHTML="<div class='ai-bubble'>本日の食事がまだ記録されていません。</div>";return;}const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);const totalP=dayMeals.reduce((s,m)=>s+(m.protein||0),0);const totalF=dayMeals.reduce((s,m)=>s+(m.fat||0),0);const totalC=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);const mealSummary=dayMeals.map(m=>`【${mealTypeLabels[m.meal_type]||m.meal_type}】${m.meals_data}（${m.total_calories}kcal、P:${m.protein||0}g、F:${m.fat||0}g、C:${m.carbs||0}g）`).join('\n');resultDiv.innerHTML="<div class='ai-loading'><span>🤖 AIが分析中...</span></div>";try{const text=await callAI(`あなたは栄養士AIアシスタントです。ユーザーの食事記録を分析して、日本語で具体的で実践的なアドバイスを提供してください。カロリー目標: ${settings.calorieGoal}kcal。アドバイスは200〜300文字程度で、絵文字を使って読みやすくしてください。`,`本日の食事:\n${mealSummary}\n\n合計: ${totalCal}kcal、P:${totalP}g、F:${totalF}g、C:${totalC}g\n\n改善点やアドバイスをください。`);resultDiv.innerHTML=`<div class='ai-bubble'>${escHtml(text)}</div>`;}catch(e){console.error(e);resultDiv.innerHTML="<div class='ai-bubble'>⚠️ AI分析に失敗しました。</div>";}}
+async function searchFriend(){const email=document.getElementById('search-email').value.trim();if(!email){alert('メールアドレスを入力してください');return;}const resultDiv=document.getElementById('search-result');resultDiv.innerHTML="<div class='ai-loading'><span>検索中...</span></div>";try{const res=await fetch(`/api/search-user?email=${encodeURIComponent(email)}`,{headers:{'Authorization':'Bearer '+currentToken}});if(!res.ok){resultDiv.innerHTML="<div class='empty'>ユーザーが見つかりませんでした</div>";return;}const user=await res.json();resultDiv.innerHTML=`<div class='friend-card'><div class='friend-info'><div class='friend-name'>${escHtml(user.display_name||'名前未設定')}</div><div class='friend-email'>${escHtml(user.email)}</div></div><button type="button" class='friend-btn accept' onclick='sendFriendRequest("${user.id}")'>申請する</button></div>`;}catch(e){resultDiv.innerHTML="<div class='empty'>エラーが発生しました</div>";}}
+async function sendFriendRequest(receiverId){try{const res=await fetch('/api/friendships',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({receiver_id:receiverId})});if(res.ok){alert('友達申請を送りました！');document.getElementById('search-result').innerHTML='';document.getElementById('search-email').value='';loadFriends();}else{alert('申請に失敗しました。すでに申請済みかもしれません。');}}catch(e){console.error(e);}}
+async function loadFriends(){if(!currentToken)return;try{const res=await fetch('/api/friendships',{headers:{'Authorization':'Bearer '+currentToken}});const friendships=await res.json();if(!Array.isArray(friendships))return;const pending=friendships.filter(f=>f.status==='pending');const accepted=friendships.filter(f=>f.status==='accepted');const pendingHtml=pending.map(f=>{const isReceiver=f.receiver_id===currentUser.id;const other=isReceiver?f.requester:f.receiver;if(!other)return '';if(isReceiver){return`<div class='friend-card'><div class='friend-info'><div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div><div class='friend-email'>${escHtml(other.email)}</div></div><div class='friend-actions'><button type="button" class='friend-btn accept' onclick='respondFriendship(${f.id},"accepted")'>承認</button><button type="button" class='friend-btn reject' onclick='respondFriendship(${f.id},"rejected")'>拒否</button></div></div>`;}else{return`<div class='friend-card'><div class='friend-info'><div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div><div class='friend-email'>${escHtml(other.email)}</div></div><span class='badge badge-pending'>申請中</span></div>`;}}).join('');document.getElementById('pending-list').innerHTML=pendingHtml||"<div class='empty'>なし</div>";const friendsHtml=accepted.map(f=>{const other=f.requester_id===currentUser.id?f.receiver:f.requester;if(!other)return '';return`<div class='friend-card'><div class='friend-info'><div class='friend-name'>${escHtml(other.display_name||'名前未設定')}</div><div class='friend-email'>${escHtml(other.email)}</div></div><div class='friend-actions'><button type="button" class='friend-btn view' onclick='viewFriend("${other.id}","${escHtml(other.display_name||other.email)}")'>食事を見る</button><button type="button" class='friend-btn delete' onclick='deleteFriendship(${f.id})'>削除</button></div></div>`;}).join('');document.getElementById('friends-list').innerHTML=friendsHtml||"<div class='empty'>まだ友達がいません</div>";}catch(e){console.error(e);}}
+async function respondFriendship(id,status){await fetch(`/api/friendships/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+currentToken},body:JSON.stringify({status})});loadFriends();}
+async function deleteFriendship(id){if(!confirm('友達を削除しますか？'))return;await fetch(`/api/friendships/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+currentToken}});loadFriends();}
+async function viewFriend(friendId,friendName){currentFriendId=friendId;currentFriendDate=getLocalToday();document.getElementById('friend-detail-name').textContent='🍱 '+friendName+'の食事';document.getElementById('friend-display-date').textContent=formatDateJP(currentFriendDate);try{const res=await fetch(`/api/friend-meals/${friendId}`,{headers:{'Authorization':'Bearer '+currentToken}});friendMeals=await res.json();if(!Array.isArray(friendMeals))friendMeals=[];}catch(e){friendMeals=[];}renderFriendDetail();showPage('friend-detail',null);}
+function renderFriendDetail(){const dayMeals=friendMeals.filter(m=>m.date===currentFriendDate);const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);const totalP=dayMeals.reduce((s,m)=>s+(m.protein||0),0);const totalF=dayMeals.reduce((s,m)=>s+(m.fat||0),0);const totalC=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);document.getElementById('friend-calories').textContent=totalCal.toLocaleString();document.getElementById('friend-protein').textContent=totalP;document.getElementById('friend-fat').textContent=totalF;document.getElementById('friend-carbs').textContent=totalC;const mealOrder=['breakfast','lunch','dinner','snack'];const html=mealOrder.map(type=>{const items=dayMeals.filter(m=>m.meal_type===type);if(items.length===0)return '';return items.map(m=>`<div class="meal-section ${type}"><div class="meal-type-label">${mealTypeLabels[type]||type}</div><div class="meal-content">${escHtml(m.meals_data)}</div><div class="meal-cal">${m.total_calories} kcal</div><div class="meal-nutrients">P:${m.protein||0}g　F:${m.fat||0}g　C:${m.carbs||0}g</div></div>`).join('');}).join('');document.getElementById('friend-meals').innerHTML=html||"<div class='empty'>この日の記録がありません</div>";}
 document.getElementById('input-date').value=getLocalToday();
 </script>
 </body>

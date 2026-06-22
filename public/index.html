@@ -33,7 +33,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .meal-nutrients{font-size:11px;color:#bbb;margin-top:2px}
 .form-group{margin:10px 0}
 .form-group label{font-size:13px;color:#555;display:block;margin-bottom:4px;font-weight:bold}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
+.form-group input,.form-group textarea{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
 .form-group input:focus,.form-group textarea:focus{border-color:#667eea}
 .nutrients-row{display:flex;gap:8px}
 .nutrients-row .form-group{flex:1}
@@ -103,7 +103,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
     <div class="tab" id="tab-friends" onclick="showPage('friends',this)">👥 友達</div>
   </div>
   <div class="content">
-    <!-- ホーム -->
     <div class="page active" id="page-home">
       <div class="user-info">
         <span id="user-email-display"></span>
@@ -131,7 +130,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       </div>
       <div class="card"><h2>🍱 今日の食事</h2><div id="today-meals"><div class="empty">まだ記録がありません</div></div></div>
     </div>
-    <!-- 追加 -->
     <div class="page" id="page-add">
       <div class="card">
         <h2>✏️ 食事を記録</h2>
@@ -164,11 +162,9 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
       </div>
     </div>
-    <!-- 履歴 -->
     <div class="page" id="page-history">
       <div class="card"><h2>📅 記録履歴</h2><div id="history-list"><div class="empty">読み込み中...</div></div></div>
     </div>
-    <!-- 友達 -->
     <div class="page" id="page-friends">
       <div class="card">
         <h2>🔍 友達を検索</h2>
@@ -191,7 +187,6 @@ let currentDate=getLocalToday();
 let selectedMealType='breakfast';
 let allMeals=[];
 let currentUser=null;
-let authToken=null;
 let calorieGoal=2000;
 let photoBase64=null;
 
@@ -208,11 +203,9 @@ function formatDateJP(dateStr){
 
 document.getElementById('header-date').textContent=formatDateJP(getLocalToday());
 
-// 認証チェック
 _supabase.auth.onAuthStateChange((event,session)=>{
   if(session){
     currentUser=session.user;
-    authToken=session.access_token;
     document.getElementById('auth-section').style.display='none';
     document.getElementById('main-section').style.display='block';
     document.getElementById('user-email-display').textContent=currentUser.email;
@@ -222,7 +215,6 @@ _supabase.auth.onAuthStateChange((event,session)=>{
     loadFriends();
   } else {
     currentUser=null;
-    authToken=null;
     document.getElementById('auth-section').style.display='block';
     document.getElementById('main-section').style.display='none';
   }
@@ -249,7 +241,7 @@ async function doRegister(){
   if(!email||!password){alert('メールとパスワードを入力してください');return;}
   const{error}=await _supabase.auth.signUp({email,password});
   if(error){alert('登録失敗：'+error.message);}
-  else{alert('登録しました！メールを確認してください。');}
+  else{alert('登録しました！');}
 }
 
 async function doLogout(){
@@ -262,7 +254,7 @@ function showPage(name,el){
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
   if(name==='history') renderHistory();
-  if(name==='friends'){loadFriends();}
+  if(name==='friends') loadFriends();
 }
 
 function changeDate(delta){
@@ -284,9 +276,9 @@ function selectMealType(type){
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
 async function loadMeals(){
-  if(!authToken)return;
+  if(!currentUser)return;
   try{
-    const res=await fetch('/api/meals',{headers:{Authorization:'Bearer '+authToken}});
+    const res=await fetch('/api/meals?user_id='+currentUser.id);
     const data=await res.json();
     allMeals=Array.isArray(data)?data:[];
     renderHome();
@@ -345,7 +337,7 @@ function renderHistory(){
 }
 
 async function saveMeal(){
-  if(!authToken){alert('ログインしてください');return;}
+  if(!currentUser){alert('ログインしてください');return;}
   const date=document.getElementById('input-date').value;
   const meals_data=document.getElementById('input-meals').value;
   const total_calories=parseInt(document.getElementById('input-calories').value)||0;
@@ -356,8 +348,8 @@ async function saveMeal(){
   try{
     const res=await fetch('/api/meals',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
-      body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,user_id:currentUser.id})
     });
     if(res.ok){
       ['input-meals','input-calories','input-protein','input-fat','input-carbs'].forEach(id=>document.getElementById(id).value='');
@@ -375,14 +367,14 @@ async function saveMeal(){
 
 async function deleteMeal(id){
   if(!confirm('削除しますか？'))return;
-  await fetch('/api/meals/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+authToken}});
+  await fetch('/api/meals/'+id,{method:'DELETE'});
   await loadMeals();
 }
 
 async function callAI(messages){
   const res=await fetch('/api/ai',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages})
   });
   const data=await res.json();
@@ -450,7 +442,7 @@ async function analyzePhoto(){
 async function searchUser(){
   const email=document.getElementById('search-email').value;
   if(!email){alert('メールアドレスを入力してください');return;}
-  const res=await fetch('/api/search-user?email='+encodeURIComponent(email),{headers:{Authorization:'Bearer '+authToken}});
+  const res=await fetch('/api/search-user?email='+encodeURIComponent(email));
   const data=await res.json();
   const div=document.getElementById('search-result');
   if(data.user){
@@ -466,17 +458,17 @@ async function searchUser(){
 async function sendFriendRequest(friendId){
   const res=await fetch('/api/friendships',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
-    body:JSON.stringify({friend_id:friendId,action:'request'})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({friend_id:friendId,action:'request',user_id:currentUser.id})
   });
   if(res.ok){alert('申請を送りました！');loadFriends();}
   else{alert('申請失敗');}
 }
 
 async function loadFriends(){
-  if(!authToken)return;
+  if(!currentUser)return;
   try{
-    const res=await fetch('/api/friendships',{headers:{Authorization:'Bearer '+authToken}});
+    const res=await fetch('/api/friendships?user_id='+currentUser.id);
     const data=await res.json();
     const friends=(data.friends||[]);
     const requests=(data.requests||[]);
@@ -497,14 +489,14 @@ async function loadFriends(){
 async function respondRequest(friendshipId,action){
   await fetch('/api/friendships',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
-    body:JSON.stringify({friendship_id:friendshipId,action})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({friendship_id:friendshipId,action,user_id:currentUser.id})
   });
   loadFriends();
 }
 
 async function viewFriendMeals(friendId){
-  const res=await fetch('/api/friend-meals/'+friendId,{headers:{Authorization:'Bearer '+authToken}});
+  const res=await fetch('/api/friend-meals/'+friendId);
   const meals=await res.json();
   alert(Array.isArray(meals)&&meals.length?meals.map(m=>m.date+' '+m.meals_data+' '+m.total_calories+'kcal').join('\n'):'食事記録がありません');
 }

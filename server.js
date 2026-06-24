@@ -14,6 +14,8 @@ app.post('/api/login',async(req,res)=>{
   const{email,password}=req.body;
   const{data,error}=await supabase.auth.signInWithPassword({email,password});
   if(error)return res.json({error:error.message});
+  // profiles自動登録
+  await supabase.from('profiles').upsert({id:data.user.id,email:data.user.email});
   res.json({user:{id:data.user.id,email:data.user.email}});
 });
 
@@ -22,7 +24,6 @@ app.post('/api/register',async(req,res)=>{
   const{email,password}=req.body;
   const{data,error}=await supabase.auth.signUp({email,password});
   if(error)return res.json({error:error.message});
-  // profilesテーブルに保存
   await supabase.from('profiles').upsert({id:data.user.id,email:data.user.email});
   res.json({user:{id:data.user.id,email:data.user.email}});
 });
@@ -32,7 +33,7 @@ app.get('/api/meals',async(req,res)=>{
   const userId=req.query.user_id;
   if(!userId)return res.status(400).json({error:'user_id required'});
   const{data,error}=await supabase.from('meals').select('*').eq('user_id',userId).order('date',{ascending:false});
-  if(error)return res.status(500).json({error});
+  if(error){console.error('meals GET error:',error);return res.status(500).json({error});}
   res.json(data||[]);
 });
 
@@ -41,7 +42,7 @@ app.post('/api/meals',async(req,res)=>{
   const{date,meals_data,total_calories,meal_type,protein,fat,carbs,user_id}=req.body;
   if(!user_id)return res.status(400).json({error:'user_id required'});
   const{error}=await supabase.from('meals').insert({date,meals_data,total_calories,meal_type,protein,fat,carbs,user_id});
-  if(error)return res.status(500).json({error});
+  if(error){console.error('meals POST error:',error);return res.status(500).json({error});}
   res.json({success:true});
 });
 

@@ -5,7 +5,7 @@ const {createClient}=require('@supabase/supabase-js');
 const crypto=require('crypto');
 const app=express();
 app.use(cors());
-app.use(express.json({limit:'10mb'}));
+app.use(express.json({limit:'20mb'}));
 app.use(express.static('public'));
 
 const supabase=createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -104,14 +104,39 @@ app.get('/api/friend-meals',async(req,res)=>{
   res.json(data||[]);
 });
 
+// コメント取得
+app.get('/api/comments/:meal_id',async(req,res)=>{
+  const{meal_id}=req.params;
+  const{data,error}=await supabase.from('comments').select('*').eq('meal_id',meal_id).order('created_at',{ascending:true});
+  if(error) return res.status(500).json({error:error.message});
+  const userIds=[...new Set((data||[]).map(c=>c.user_id))];
+  if(userIds.length===0) return res.json([]);
+  const{data:profiles}=await supabase.from('profiles').select('id,display_name').in('id',userIds);
+  const result=(data||[]).map(c=>({...c,display_name:profiles?.find(p=>p.id===c.user_id)?.display_name||''}));
+  res.json(result);
+});
+
+// コメント投稿
+app.post('/api/comments',async(req,res)=>{
+  const{meal_id,user_id,content}=req.body;
+  if(!meal_id||!user_id||!content) return res.status(400).json({error:'必須項目不足'});
+  const{error}=await supabase.from('comments').insert({meal_id,user_id,content});
+  if(error) return res.status(500).json({error:error.message});
+  res.json({success:true});
+});
+
 app.post('/api/ai',async(req,res)=>{
-  const{system,user,imageBase64}=req.body;
+  const{system,user,images}=req.body;
   const apiKey=process.env.ANTHROPIC_API_KEY;
   if(!apiKey) return res.status(500).json({error:'APIキーが設定されていません'});
-  const messages=[{role:'user',content:imageBase64?[
-    {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageBase64}},
-    {type:'text',text:user}
-  ]:[{type:'text',text:user}]}];
+  const content=[];
+  if(images&&images.length>0){
+    images.forEach(b64=>{
+      content.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}});
+    });
+  }
+  content.push({type:'text',text:user});
+  const messages=[{role:'user',content}];
   try{
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',

@@ -32,6 +32,14 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .meal-nutrients{font-size:11px;color:#bbb;margin-top:2px}
 .meal-delete{position:absolute;top:0;right:0;background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:2px 6px}
 .meal-delete:hover{color:#e74c3c}
+.meal-comment-btn{font-size:11px;color:#667eea;background:none;border:none;cursor:pointer;margin-top:4px;padding:0}
+.comment-area{margin-top:8px;background:#f8f9ff;border-radius:8px;padding:8px}
+.comment-item{font-size:12px;color:#555;padding:4px 0;border-bottom:1px solid #eee}
+.comment-item:last-child{border-bottom:none}
+.comment-author{font-weight:bold;color:#667eea}
+.comment-input-row{display:flex;gap:6px;margin-top:6px}
+.comment-input-row input{flex:1;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px}
+.comment-input-row button{padding:6px 10px;background:#667eea;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer}
 .form-group{margin:10px 0}
 .form-group label{font-size:13px;color:#555;display:block;margin-bottom:4px;font-weight:bold}
 .form-group input,.form-group textarea{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
@@ -43,6 +51,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .btn-secondary{background:#f0f0f0;color:#555}
 .btn-ai{background:linear-gradient(135deg,#11998e,#38ef7d);color:white}
 .btn-photo{background:linear-gradient(135deg,#f7971e,#ffd200);color:#333}
+.btn-camera{background:linear-gradient(135deg,#e74c3c,#c0392b);color:white}
 .btn:active{opacity:0.8}
 .meal-type-buttons{display:flex;gap:8px;margin:8px 0}
 .meal-type-btn{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;background:white;font-size:12px;cursor:pointer;text-align:center;transition:all 0.2s}
@@ -72,7 +81,10 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .nutrition-item-name{color:#333;font-weight:bold}
 .nutrition-item-values{color:#888}
 .nutrition-total{background:#667eea;color:white;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between}
-.photo-preview{width:100%;border-radius:8px;margin:8px 0;max-height:200px;object-fit:cover;display:none}
+.photo-preview-container{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.photo-preview-item{position:relative;width:80px;height:80px}
+.photo-preview-item img{width:80px;height:80px;object-fit:cover;border-radius:8px}
+.photo-preview-item button{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;text-align:center}
 #auth-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:100;display:flex;align-items:center;justify-content:center}
 .auth-card{background:white;border-radius:16px;padding:32px 24px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
 .auth-card h2{text-align:center;font-size:20px;color:#333;margin-bottom:4px}
@@ -117,9 +129,9 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 
 <div class="header">
   <h1>🍽️ ぽちゃログ</h1>
-  ぽちゃ<p id="header-info"></p>
+  <p id="header-info"></p>
   <button onclick="doLogout()" style="margin-top:8px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 12px;border-radius:8px;font-size:12px;cursor:pointer">ログアウト</button>
-</div>ログ
+</div>
 <div class="tabs">
   <div class="tab active" id="tab-home" onclick="showPage('home',this)">🏠 ホーム</div>
   <div class="tab" id="tab-add" onclick="showPage('add',this)">➕ 追加</div>
@@ -175,10 +187,19 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3"></textarea></div>
       <button class="btn btn-ai" onclick="calcNutritionFromText()">🤖 AIでカロリー計算</button>
       <div class="form-group" style="margin-top:12px">
-        <label>📷 写真からAI分析</label>
-        <input type="file" id="photo-input" accept="image/*" onchange="onPhotoSelected(event)" style="margin-top:4px">
-        <img id="photo-preview" class="photo-preview">
-        <button class="btn btn-photo" onclick="analyzePhoto()" style="margin-top:6px">📷 写真を分析する</button>
+        <label>📷 写真・カメラでAI分析（複数枚OK）</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <label style="flex:1;padding:10px;background:#f0f4ff;border:2px dashed #667eea;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;color:#667eea">
+            📁 ファイル選択
+            <input type="file" id="photo-input" accept="image/*" multiple onchange="onPhotosSelected(event)" style="display:none">
+          </label>
+          <label style="flex:1;padding:10px;background:#fff0f0;border:2px dashed #e74c3c;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;color:#e74c3c">
+            📸 カメラ撮影
+            <input type="file" id="camera-input" accept="image/*" capture="environment" multiple onchange="onPhotosSelected(event)" style="display:none">
+          </label>
+        </div>
+        <div class="photo-preview-container" id="photo-previews"></div>
+        <button class="btn btn-photo" onclick="analyzePhotos()" style="margin-top:6px">📷 写真をAI分析する</button>
       </div>
       <div id="ai-calc-result"></div>
       <div class="form-group" style="margin-top:12px"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
@@ -231,7 +252,7 @@ let selectedMealType='breakfast';
 let allMeals=[];
 let currentUser=null;
 let friendsList=[];
-let currentPhotoBase64=null;
+let selectedPhotos=[];
 let calorieGoal=parseInt(localStorage.getItem('calorie_goal'))||2000;
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
@@ -282,6 +303,8 @@ async function doRegister(){
   loginSuccess(data);
 }
 
+function doLogout(){localStorage.removeItem('pochalog_user');location.reload();}
+
 function loginSuccess(user){
   currentUser=user;
   localStorage.setItem('pochalog_user',JSON.stringify(user));
@@ -327,15 +350,50 @@ function renderHome(){
   const html=['breakfast','lunch','dinner','snack'].map(type=>{
     const items=dayMeals.filter(m=>m.meal_type===type);
     if(!items.length) return '';
-    return items.map(m=>`<div class="meal-section ${type}">
+    return items.map(m=>`<div class="meal-section ${type}" id="meal-${m.id}">
       <button class="meal-delete" onclick="deleteMeal('${m.id}')">✕</button>
       <div class="meal-type-label">${mealTypeLabels[type]}</div>
       <div class="meal-content">${m.meals_data}</div>
       <div class="meal-cal">${m.total_calories} kcal</div>
       <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g</div>
+      <button class="meal-comment-btn" onclick="toggleComments('${m.id}')">💬 コメントを見る・書く</button>
+      <div id="comments-${m.id}" style="display:none"></div>
     </div>`).join('');
   }).join('');
   document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";
+}
+
+async function toggleComments(meal_id){
+  const div=document.getElementById('comments-'+meal_id);
+  if(div.style.display==='none'){
+    div.style.display='block';
+    await loadComments(meal_id);
+  }else{
+    div.style.display='none';
+  }
+}
+
+async function loadComments(meal_id){
+  const div=document.getElementById('comments-'+meal_id);
+  const res=await fetch('/api/comments/'+meal_id);
+  const comments=await res.json();
+  const html=`<div class="comment-area">
+    ${comments.length>0?comments.map(c=>`<div class="comment-item"><span class="comment-author">${c.display_name}</span>: ${c.content}</div>`).join(''):'<div style="font-size:12px;color:#aaa">まだコメントがありません</div>'}
+    <div class="comment-input-row">
+      <input type="text" id="comment-input-${meal_id}" placeholder="コメントを入力...">
+      <button onclick="postComment('${meal_id}')">送信</button>
+    </div>
+  </div>`;
+  div.innerHTML=html;
+}
+
+async function postComment(meal_id){
+  const input=document.getElementById('comment-input-'+meal_id);
+  const content=input.value.trim();
+  if(!content) return;
+  await fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({meal_id,user_id:currentUser.id,content})});
+  await loadComments(meal_id);
 }
 
 function renderHistory(){
@@ -375,15 +433,15 @@ async function saveMeal(){
   document.getElementById('input-fat').value='';
   document.getElementById('input-carbs').value='';
   document.getElementById('ai-calc-result').innerHTML='';
-  currentPhotoBase64=null;
-  document.getElementById('photo-preview').style.display='none';
+  selectedPhotos=[];
+  document.getElementById('photo-previews').innerHTML='';
   alert('保存しました！');
   await loadMeals();
 }
 
-async function callAI(system,user,imageBase64){
+async function callAI(system,user,images){
   const body={system,user};
-  if(imageBase64) body.imageBase64=imageBase64;
+  if(images&&images.length>0) body.images=images;
   const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const data=await res.json();
   return data.text||'';
@@ -429,29 +487,42 @@ async function calcNutritionFromText(){
   }
 }
 
-function onPhotoSelected(event){
-  const file=event.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const base64=e.target.result.split(',')[1];
-    currentPhotoBase64=base64;
-    const preview=document.getElementById('photo-preview');
-    preview.src=e.target.result;
-    preview.style.display='block';
-  };
-  reader.readAsDataURL(file);
+function onPhotosSelected(event){
+  const files=Array.from(event.target.files);
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const base64=e.target.result.split(',')[1];
+      selectedPhotos.push(base64);
+      const container=document.getElementById('photo-previews');
+      const idx=selectedPhotos.length-1;
+      const div=document.createElement('div');
+      div.className='photo-preview-item';
+      div.id='preview-'+idx;
+      div.innerHTML=`<img src="${e.target.result}"><button onclick="removePhoto(${idx})">✕</button>`;
+      container.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value='';
 }
 
-async function analyzePhoto(){
+function removePhoto(idx){
+  selectedPhotos[idx]=null;
+  const el=document.getElementById('preview-'+idx);
+  if(el) el.remove();
+}
+
+async function analyzePhotos(){
   const resultDiv=document.getElementById('ai-calc-result');
-  if(!currentPhotoBase64){alert('写真を選んでください');return;}
-  resultDiv.innerHTML="<div class='ai-loading'>📷 AIが写真を分析中...</div>";
+  const photos=selectedPhotos.filter(p=>p!==null);
+  if(photos.length===0){alert('写真を選んでください');return;}
+  resultDiv.innerHTML="<div class='ai-loading'>📷 AIが"+photos.length+"枚の写真を分析中...</div>";
   try{
     const text=await callAI(
-      'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
-      'この料理の写真を分析して各食品のカロリーと栄養素をJSON形式で教えてください。',
-      currentPhotoBase64
+      'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。複数枚の場合はすべての料理を合算してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
+      '写真の料理を分析して各食品のカロリーと栄養素をJSON形式で教えてください。',
+      photos
     );
     const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     if(parsed.meals) document.getElementById('input-meals').value=parsed.meals;
@@ -537,12 +608,48 @@ async function viewFriendMeals(friend_id,display_name){
         <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
-      ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data} (${m.total_calories}kcal)</div>`).join('')}
+      ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">
+        ${mealTypeLabels[m.meal_type]||''} ${m.meals_data} (${m.total_calories}kcal)
+        <button class="meal-comment-btn" onclick="toggleFriendComments('${m.id}','friend-c-${m.id}')">💬 コメント</button>
+        <div id="friend-c-${m.id}" style="display:none"></div>
+      </div>`).join('')}
     </div>`;
   }).join('')||"<div class='empty'>記録がありません</div>";
   document.getElementById('friend-meals-title').textContent=display_name+'さんの食事';
   document.getElementById('friend-meals-list').innerHTML=html;
   document.getElementById('friend-meals-card').style.display='block';
+}
+
+async function toggleFriendComments(meal_id,div_id){
+  const div=document.getElementById(div_id);
+  if(div.style.display==='none'){
+    div.style.display='block';
+    await loadFriendComments(meal_id,div_id);
+  }else{
+    div.style.display='none';
+  }
+}
+
+async function loadFriendComments(meal_id,div_id){
+  const div=document.getElementById(div_id);
+  const res=await fetch('/api/comments/'+meal_id);
+  const comments=await res.json();
+  div.innerHTML=`<div class="comment-area">
+    ${comments.length>0?comments.map(c=>`<div class="comment-item"><span class="comment-author">${c.display_name}</span>: ${c.content}</div>`).join(''):'<div style="font-size:12px;color:#aaa">まだコメントがありません</div>'}
+    <div class="comment-input-row">
+      <input type="text" id="fc-input-${meal_id}" placeholder="コメントを入力...">
+      <button onclick="postFriendComment('${meal_id}','${div_id}')">送信</button>
+    </div>
+  </div>`;
+}
+
+async function postFriendComment(meal_id,div_id){
+  const input=document.getElementById('fc-input-'+meal_id);
+  const content=input.value.trim();
+  if(!content) return;
+  await fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({meal_id,user_id:currentUser.id,content})});
+  await loadFriendComments(meal_id,div_id);
 }
 
 function changeDate(delta){
@@ -570,7 +677,6 @@ function selectMealType(type){
   });
 }
 
-function doLogout(){localStorage.removeItem('pochalog_user');location.reload();}
 const saved=localStorage.getItem('pochalog_user');
 if(saved) loginSuccess(JSON.parse(saved));
 </script>

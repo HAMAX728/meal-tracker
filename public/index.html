@@ -570,6 +570,7 @@ function selectMealType(type){
   });
 }
 
+function doLogout(){localStorage.removeItem('pochalog_user');location.reload();}
 const saved=localStorage.getItem('pochalog_user');
 if(saved) loginSuccess(JSON.parse(saved));
 </script>

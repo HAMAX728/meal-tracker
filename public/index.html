@@ -14,7 +14,8 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-size:13px;color:#888;border-bottom:3px solid transparent;transition:all 0.2s}
 .tab.active{color:#667eea;border-bottom:3px solid #667eea;font-weight:bold}
 .content{padding:16px;max-width:600px;margin:0 auto}
-.page{display:none}.page.active{display:block}
+.page{display:none}
+.page.active{display:block}
 .card{background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
 .card h2{font-size:16px;color:#333;margin-bottom:12px}
 .calorie-ring{text-align:center;padding:20px 0}
@@ -58,135 +59,160 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .nutrient-card.protein .value{color:#e74c3c}
 .nutrient-card.fat .value{color:#f39c12}
 .nutrient-card.carbs .value{color:#27ae60}
-.auth-tabs{display:flex;margin-bottom:16px;border-bottom:2px solid #eee}
-.auth-tab{flex:1;padding:10px;text-align:center;cursor:pointer;color:#888;font-size:14px}
-.auth-tab.active{color:#667eea;border-bottom:2px solid #667eea;font-weight:bold}
-.user-info{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;color:#666}
-.meal-actions button{padding:4px 10px;font-size:11px;border:1px solid #e74c3c;border-radius:6px;cursor:pointer;background:white;color:#e74c3c;margin-top:6px}
-.ai-result{background:#f0f4ff;border-radius:10px;padding:12px;margin-top:12px;font-size:13px;color:#444;line-height:1.6}
-.photo-preview{width:100%;border-radius:8px;margin:8px 0;max-height:200px;object-fit:cover}
+/* 認証 */
+#auth-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:100;display:flex;align-items:center;justify-content:center}
+.auth-card{background:white;border-radius:16px;padding:32px 24px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.auth-card h2{text-align:center;font-size:20px;color:#333;margin-bottom:4px}
+.auth-card p{text-align:center;font-size:13px;color:#888;margin-bottom:20px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:20px}
+.auth-tab{flex:1;padding:10px;text-align:center;border:2px solid #ddd;border-radius:8px;cursor:pointer;font-size:14px;color:#888}
+.auth-tab.active{border-color:#667eea;color:#667eea;font-weight:bold}
+/* 友達 */
+.friend-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}
+.friend-name{font-size:14px;font-weight:bold;color:#333}
+.friend-email{font-size:12px;color:#999}
+.friend-btn{padding:6px 14px;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:bold}
+.btn-accept{background:#27ae60;color:white}
+.btn-reject{background:#e74c3c;color:white;margin-left:6px}
+.btn-view{background:#667eea;color:white}
+.badge{display:inline-block;background:#e74c3c;color:white;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:4px}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>🍽️ ぽちゃログ</h1>
-  <p id="header-date"></p>
-</div>
 
-<div id="auth-section" style="display:none;max-width:600px;margin:0 auto;padding:16px">
-  <div class="card">
+<!-- 認証画面 -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h2>🍽️ ぽちゃログ</h2>
+    <p>食事記録・友達と共有</p>
     <div class="auth-tabs">
-      <div class="auth-tab active" id="atab-login" onclick="doSwitchAuthTab('login')">ログイン</div>
-      <div class="auth-tab" id="atab-register" onclick="doSwitchAuthTab('register')">新規登録</div>
+      <div class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">ログイン</div>
+      <div class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">新規登録</div>
     </div>
+    <!-- ログイン -->
     <div id="auth-login">
-      <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" placeholder="example@email.com"></div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" placeholder="example@mail.com"></div>
       <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
       <button class="btn btn-primary" onclick="doLogin()">ログイン</button>
     </div>
+    <!-- 登録 -->
     <div id="auth-register" style="display:none">
-      <div class="form-group"><label>メールアドレス</label><input type="email" id="reg-email" placeholder="example@email.com"></div>
-      <div class="form-group"><label>パスワード（6文字以上）</label><input type="password" id="reg-password" placeholder="パスワード"></div>
-      <button class="btn btn-primary" onclick="doRegister()">新規登録</button>
+      <div class="form-group"><label>表示名（ニックネーム）</label><input type="text" id="reg-name" placeholder="例：マックス"></div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="reg-email" placeholder="example@mail.com"></div>
+      <div class="form-group"><label>パスワード</label><input type="password" id="reg-password" placeholder="6文字以上"></div>
+      <button class="btn btn-primary" onclick="doRegister()">登録する</button>
     </div>
+    <p id="auth-error" style="color:#e74c3c;font-size:13px;text-align:center;margin-top:10px"></p>
   </div>
 </div>
 
-<div id="main-section" style="display:none">
-  <div class="tabs">
-    <div class="tab active" id="tab-home" onclick="showPage('home',this)">🏠 ホーム</div>
-    <div class="tab" id="tab-add" onclick="showPage('add',this)">➕ 追加</div>
-    <div class="tab" id="tab-history" onclick="showPage('history',this)">📅 履歴</div>
-    <div class="tab" id="tab-friends" onclick="showPage('friends',this)">👥 友達</div>
+<!-- メイン -->
+<div class="header">
+  <h1>🍽️ ぽちゃログ</h1>
+  <p id="header-info"></p>
+</div>
+<div class="tabs">
+  <div class="tab active" id="tab-home" onclick="showPage('home',this)">🏠 ホーム</div>
+  <div class="tab" id="tab-add" onclick="showPage('add',this)">➕ 追加</div>
+  <div class="tab" id="tab-history" onclick="showPage('history',this)">📅 履歴</div>
+  <div class="tab" id="tab-friends" onclick="showPage('friends',this)">👥 友達<span class="badge" id="pending-badge" style="display:none"></span></div>
+</div>
+<div class="content">
+  <!-- ホーム -->
+  <div class="page active" id="page-home">
+    <div class="date-nav">
+      <button onclick="changeDate(-1)">◀</button>
+      <span id="display-date"></span>
+      <button onclick="changeDate(1)">▶</button>
+    </div>
+    <div class="card">
+      <h2>📊 カロリー</h2>
+      <div class="calorie-ring">
+        <div class="calorie-number" id="today-calories">0</div>
+        <div class="calorie-label">kcal 摂取</div>
+        <div class="calorie-goal">目標: <span id="goal-display">2000</span> kcal</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="calorie-progress" style="width:0%"></div></div>
+      <p id="calorie-status" style="text-align:center;font-size:13px;color:#888;margin-top:6px"></p>
+      <div class="nutrient-cards">
+        <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
+        <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
+        <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🍱 今日の食事</h2>
+      <div id="today-meals"><div class="empty">まだ記録がありません</div></div>
+    </div>
   </div>
-  <div class="content">
-    <div class="page active" id="page-home">
-      <div class="user-info">
-        <span id="user-email-display"></span>
-        <button onclick="doLogout()" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:white;font-size:12px">ログアウト</button>
-      </div>
-      <div class="date-nav">
-        <button onclick="changeDate(-1)">◀</button>
-        <span id="display-date"></span>
-        <button onclick="changeDate(1)">▶</button>
-      </div>
-      <div class="card">
-        <h2>📊 カロリー</h2>
-        <div class="calorie-ring">
-          <div class="calorie-number" id="today-calories">0</div>
-          <div class="calorie-label">kcal 摂取</div>
-          <div class="calorie-goal">目標: <span id="goal-display">2000</span> kcal</div>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="calorie-progress" style="width:0%"></div></div>
-        <p id="calorie-status" style="text-align:center;font-size:13px;color:#888;margin-top:6px"></p>
-        <div class="nutrient-cards">
-          <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
-          <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
-          <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
+  <!-- 追加 -->
+  <div class="page" id="page-add">
+    <div class="card">
+      <h2>✏️ 食事を記録</h2>
+      <div class="form-group"><label>日付</label><input type="date" id="input-date"></div>
+      <div class="form-group">
+        <label>食事の種類</label>
+        <div class="meal-type-buttons">
+          <div class="meal-type-btn selected" onclick="selectMealType('breakfast')" id="btn-breakfast">🌅 朝食</div>
+          <div class="meal-type-btn" onclick="selectMealType('lunch')" id="btn-lunch">☀️ 昼食</div>
+          <div class="meal-type-btn" onclick="selectMealType('dinner')" id="btn-dinner">🌙 夕食</div>
+          <div class="meal-type-btn" onclick="selectMealType('snack')" id="btn-snack">🍪 間食</div>
         </div>
       </div>
-      <div class="card"><h2>🍱 今日の食事</h2><div id="today-meals"><div class="empty">まだ記録がありません</div></div></div>
+      <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3"></textarea></div>
+      <div class="form-group"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
+      <div class="nutrients-row">
+        <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30"></div>
+        <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15"></div>
+        <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
     </div>
-    <div class="page" id="page-add">
-      <div class="card">
-        <h2>✏️ 食事を記録</h2>
-        <div class="form-group"><label>日付</label><input type="date" id="input-date"></div>
-        <div class="form-group">
-          <label>食事の種類</label>
-          <div class="meal-type-buttons">
-            <div class="meal-type-btn selected" onclick="selectMealType('breakfast')" id="btn-breakfast">🌅 朝食</div>
-            <div class="meal-type-btn" onclick="selectMealType('lunch')" id="btn-lunch">☀️ 昼食</div>
-            <div class="meal-type-btn" onclick="selectMealType('dinner')" id="btn-dinner">🌙 夕食</div>
-            <div class="meal-type-btn" onclick="selectMealType('snack')" id="btn-snack">🍪 間食</div>
-          </div>
-        </div>
-        <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3"></textarea></div>
-        <div class="form-group"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
-        <div class="nutrients-row">
-          <div class="form-group"><label>タンパク質(g)</label><input type="number" id="input-protein" placeholder="30"></div>
-          <div class="form-group"><label>脂質(g)</label><input type="number" id="input-fat" placeholder="15"></div>
-          <div class="form-group"><label>炭水化物(g)</label><input type="number" id="input-carbs" placeholder="80"></div>
-        </div>
-        <div class="form-group">
-          <label>📷 写真でAI分析</label>
-          <input type="file" id="input-photo" accept="image/*" onchange="previewPhoto(this)">
-          <img id="photo-preview" class="photo-preview" style="display:none">
-          <button class="btn btn-secondary" onclick="analyzePhoto()">📸 写真から栄養を計算</button>
-        </div>
-        <button class="btn btn-secondary" onclick="aiEstimate()">🤖 AIでカロリーを推定</button>
-        <div id="ai-result" class="ai-result" style="display:none"></div>
-        <br>
-        <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
-      </div>
+  </div>
+  <!-- 履歴 -->
+  <div class="page" id="page-history">
+    <div class="card">
+      <h2>📅 記録履歴</h2>
+      <div id="history-list"><div class="empty">読み込み中...</div></div>
     </div>
-    <div class="page" id="page-history">
-      <div class="card"><h2>📅 記録履歴</h2><div id="history-list"><div class="empty">読み込み中...</div></div></div>
+  </div>
+  <!-- 友達 -->
+  <div class="page" id="page-friends">
+    <div class="card">
+      <h2>🔍 友達を検索・追加</h2>
+      <div class="form-group"><label>メールアドレスで検索</label><input type="email" id="search-email" placeholder="友達のメールアドレス"></div>
+      <button class="btn btn-primary" onclick="searchFriend()">検索する</button>
+      <div id="search-result" style="margin-top:12px"></div>
     </div>
-    <div class="page" id="page-friends">
-      <div class="card">
-        <h2>🔍 友達を検索</h2>
-        <div class="form-group"><input type="email" id="search-email" placeholder="メールアドレスで検索"></div>
-        <button class="btn btn-primary" onclick="searchUser()">検索</button>
-        <div id="search-result"></div>
-      </div>
-      <div class="card"><h2>👥 友達リスト</h2><div id="friends-list"><div class="empty">読み込み中...</div></div></div>
-      <div class="card"><h2>📬 申請一覧</h2><div id="requests-list"><div class="empty">読み込み中...</div></div></div>
+    <div class="card">
+      <h2>📨 申請中・承認待ち</h2>
+      <div id="pending-list"><div class="empty">なし</div></div>
+    </div>
+    <div class="card">
+      <h2>👥 友達一覧</h2>
+      <div id="friends-list"><div class="empty">まだ友達がいません</div></div>
+    </div>
+    <!-- 友達の食事表示 -->
+    <div class="card" id="friend-meals-card" style="display:none">
+      <h2 id="friend-meals-title">友達の食事</h2>
+      <button class="btn btn-secondary" onclick="document.getElementById('friend-meals-card').style.display='none'" style="margin-bottom:12px">✕ 閉じる</button>
+      <div id="friend-meals-list"></div>
     </div>
   </div>
 </div>
 
 <script>
-let currentDate=getLocalToday();
-let selectedMealType='breakfast';
-let allMeals=[];
-let currentUser=null;
-let calorieGoal=2000;
-let photoBase64=null;
-
 function getLocalToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+let currentDate=getLocalToday();
+let selectedMealType='breakfast';
+let allMeals=[];
+let currentUser=null;
+let friendsList=[];
+const CALORIE_GOAL=2000;
+const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
 function formatDateJP(dateStr){
   const parts=dateStr.split('-');
@@ -194,115 +220,60 @@ function formatDateJP(dateStr){
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
 }
 
-// Markdownを除去してプレーンテキストに変換
-function cleanText(text){
-  return text.replace(/\*\*/g,'').replace(/##/g,'').replace(/\*/g,'').trim();
+// 認証
+function switchAuthTab(tab){
+  document.getElementById('auth-login').style.display=tab==='login'?'block':'none';
+  document.getElementById('auth-register').style.display=tab==='register'?'block':'none';
+  document.getElementById('auth-tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('auth-tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('auth-error').textContent='';
 }
-
-// 数値抽出（全角・半角コロン、約の有無に対応）
-function extractNum(text,keywords){
-  for(const kw of keywords){
-    const m=text.match(new RegExp(kw+'[：:約\\s]*([\\d.]+)'));
-    if(m)return m[1];
-  }
-  return null;
-}
-
-// 食事内容抽出
-function extractMealName(text){
-  const m=text.match(/食事内容[：:約\s]*([^\n\r]+)/);
-  if(m)return cleanText(m[1]);
-  return null;
-}
-
-document.getElementById('header-date').textContent=formatDateJP(getLocalToday());
 
 async function doLogin(){
   const email=document.getElementById('login-email').value;
   const password=document.getElementById('login-password').value;
-  if(!email||!password){alert('メールとパスワードを入力してください');return;}
-  try{
-    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
-    const data=await res.json();
-    if(data.error){alert('ログイン失敗：'+data.error);return;}
-    currentUser=data.user;
-    showMain();
-  }catch(e){alert('エラー：'+e.message);}
+  if(!email||!password){document.getElementById('auth-error').textContent='メールとパスワードを入力してください';return;}
+  const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+  const data=await res.json();
+  if(!res.ok){document.getElementById('auth-error').textContent=data.error;return;}
+  loginSuccess(data);
 }
 
 async function doRegister(){
+  const display_name=document.getElementById('reg-name').value;
   const email=document.getElementById('reg-email').value;
   const password=document.getElementById('reg-password').value;
-  if(!email||!password){alert('メールとパスワードを入力してください');return;}
-  try{
-    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
-    const data=await res.json();
-    if(data.error){alert('登録失敗：'+data.error);return;}
-    alert('登録しました！ログインしてください。');
-    doSwitchAuthTab('login');
-  }catch(e){alert('エラー：'+e.message);}
+  if(!display_name||!email||!password){document.getElementById('auth-error').textContent='すべて入力してください';return;}
+  if(password.length<6){document.getElementById('auth-error').textContent='パスワードは6文字以上';return;}
+  const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,display_name})});
+  const data=await res.json();
+  if(!res.ok){document.getElementById('auth-error').textContent=data.error;return;}
+  loginSuccess(data);
+}
+
+function loginSuccess(user){
+  currentUser=user;
+  localStorage.setItem('pochalog_user',JSON.stringify(user));
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('header-info').textContent=user.display_name+'さん';
+  document.getElementById('input-date').value=getLocalToday();
+  document.getElementById('display-date').textContent=formatDateJP(currentDate);
+  loadMeals();
+  loadFriends();
 }
 
 function doLogout(){
-  currentUser=null;
-  allMeals=[];
-  document.getElementById('auth-section').style.display='block';
-  document.getElementById('main-section').style.display='none';
+  localStorage.removeItem('pochalog_user');
+  location.reload();
 }
 
-function showMain(){
-  document.getElementById('auth-section').style.display='none';
-  document.getElementById('main-section').style.display='block';
-  document.getElementById('user-email-display').textContent=currentUser.email;
-  document.getElementById('display-date').textContent=formatDateJP(currentDate);
-  document.getElementById('input-date').value=getLocalToday();
-  loadMeals();
-}
-
-function doSwitchAuthTab(tab){
-  document.getElementById('auth-login').style.display=tab==='login'?'block':'none';
-  document.getElementById('auth-register').style.display=tab==='register'?'block':'none';
-  document.getElementById('atab-login').classList.toggle('active',tab==='login');
-  document.getElementById('atab-register').classList.toggle('active',tab==='register');
-}
-
-document.getElementById('auth-section').style.display='block';
-
-function showPage(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  el.classList.add('active');
-  if(name==='history') renderHistory();
-  if(name==='friends') loadFriends();
-}
-
-function changeDate(delta){
-  const parts=currentDate.split('-');
-  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  d.setDate(d.getDate()+delta);
-  currentDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  document.getElementById('display-date').textContent=formatDateJP(currentDate);
-  renderHome();
-}
-
-function selectMealType(type){
-  selectedMealType=type;
-  ['breakfast','lunch','dinner','snack'].forEach(t=>{
-    document.getElementById('btn-'+t).classList.toggle('selected',t===type);
-  });
-}
-
-const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
-
+// 食事
 async function loadMeals(){
-  if(!currentUser)return;
-  try{
-    const res=await fetch('/api/meals?user_id='+currentUser.id);
-    const data=await res.json();
-    allMeals=Array.isArray(data)?data:[];
-    renderHome();
-  }catch(e){console.error(e);}
+  if(!currentUser) return;
+  const res=await fetch('/api/meals?user_id='+currentUser.id);
+  allMeals=await res.json();
+  if(!Array.isArray(allMeals)) allMeals=[];
+  renderHome();
 }
 
 function renderHome(){
@@ -315,24 +286,21 @@ function renderHome(){
   document.getElementById('today-protein').textContent=totalProtein;
   document.getElementById('today-fat').textContent=totalFat;
   document.getElementById('today-carbs').textContent=totalCarbs;
-  document.getElementById('goal-display').textContent=calorieGoal;
-  const pct=Math.min((totalCal/calorieGoal)*100,100);
+  const pct=Math.min((totalCal/CALORIE_GOAL)*100,100);
   const bar=document.getElementById('calorie-progress');
   bar.style.width=pct+'%';
-  bar.className='progress-fill'+(totalCal>calorieGoal?' over':'');
-  const remain=calorieGoal-totalCal;
+  bar.className='progress-fill'+(totalCal>CALORIE_GOAL?' over':'');
+  const remain=CALORIE_GOAL-totalCal;
   document.getElementById('calorie-status').textContent=remain>0?'あと '+remain+' kcal':'目標を '+Math.abs(remain)+' kcal オーバー';
   const html=['breakfast','lunch','dinner','snack'].map(type=>{
     const items=dayMeals.filter(m=>m.meal_type===type);
-    if(!items.length)return '';
-    return items.map(m=>`
-      <div class="meal-section ${type}">
-        <div class="meal-type-label">${mealTypeLabels[type]}</div>
-        <div class="meal-content">${m.meals_data}</div>
-        <div class="meal-cal">${m.total_calories} kcal</div>
-        <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g</div>
-        <div class="meal-actions"><button onclick="deleteMeal('${m.id}')">🗑️ 削除</button></div>
-      </div>`).join('');
+    if(!items.length) return '';
+    return items.map(m=>`<div class="meal-section ${type}">
+      <div class="meal-type-label">${mealTypeLabels[type]}</div>
+      <div class="meal-content">${m.meals_data}</div>
+      <div class="meal-cal">${m.total_calories} kcal</div>
+      <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g</div>
+    </div>`).join('');
   }).join('');
   document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";
 }
@@ -344,18 +312,21 @@ function renderHistory(){
   document.getElementById('history-list').innerHTML=dates.map(date=>{
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
+    const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
+    const totalF=items.reduce((s,m)=>s+(m.fat||0),0);
+    const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);
     return `<div style="border-bottom:1px solid #eee;padding:10px 0">
-      <div style="display:flex;justify-content:space-between">
+      <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
+      <div style="font-size:12px;color:#999;margin-top:2px">P:${totalP}g F:${totalF}g C:${totalC}g</div>
       ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data}</div>`).join('')}
     </div>`;
   }).join('')||"<div class='empty'>履歴がありません</div>";
 }
 
 async function saveMeal(){
-  if(!currentUser){alert('ログインしてください');return;}
   const date=document.getElementById('input-date').value;
   const meals_data=document.getElementById('input-meals').value;
   const total_calories=parseInt(document.getElementById('input-calories').value)||0;
@@ -363,162 +334,139 @@ async function saveMeal(){
   const fat=parseFloat(document.getElementById('input-fat').value)||0;
   const carbs=parseFloat(document.getElementById('input-carbs').value)||0;
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
-  try{
-    const res=await fetch('/api/meals',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,user_id:currentUser.id})
-    });
-    if(res.ok){
-      ['input-meals','input-calories','input-protein','input-fat','input-carbs'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('ai-result').style.display='none';
-      photoBase64=null;
-      document.getElementById('photo-preview').style.display='none';
-      alert('保存しました！');
-      await loadMeals();
-    }else{
-      const err=await res.json();
-      alert('保存失敗：'+JSON.stringify(err));
-    }
-  }catch(e){console.error(e);}
-}
-
-async function deleteMeal(id){
-  if(!confirm('削除しますか？'))return;
-  await fetch('/api/meals/'+id,{method:'DELETE'});
+  await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs})});
+  document.getElementById('input-meals').value='';
+  document.getElementById('input-calories').value='';
+  document.getElementById('input-protein').value='';
+  document.getElementById('input-fat').value='';
+  document.getElementById('input-carbs').value='';
+  alert('保存しました！');
   await loadMeals();
 }
 
-async function callAI(messages){
-  const res=await fetch('/api/ai',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages})
-  });
-  const data=await res.json();
-  if(data.content&&data.content[0])return data.content[0].text;
-  throw new Error('AI応答エラー');
+// 友達
+async function loadFriends(){
+  if(!currentUser) return;
+  const res=await fetch('/api/friends?user_id='+currentUser.id);
+  friendsList=await res.json();
+  if(!Array.isArray(friendsList)) friendsList=[];
+  renderFriends();
 }
 
-async function aiEstimate(){
-  const meals=document.getElementById('input-meals').value;
-  if(!meals){alert('食事内容を入力してください');return;}
-  const resultDiv=document.getElementById('ai-result');
-  resultDiv.style.display='block';
-  resultDiv.textContent='🤖 AI計算中...';
-  try{
-    const text=await callAI([{role:'user',content:`以下の食事のカロリーとPFCを教えてください：${meals}\n\n必ず以下の形式のみで答えてください（他の文章は不要）：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg`}]);
-    resultDiv.textContent=cleanText(text);
-    const name=extractMealName(text);
-    const cal=extractNum(text,['カロリー','熱量']);
-    const p=extractNum(text,['タンパク質','蛋白質']);
-    const f=extractNum(text,['脂質','脂肪']);
-    const c=extractNum(text,['炭水化物','糖質']);
-    if(name)document.getElementById('input-meals').value=name;
-    if(cal)document.getElementById('input-calories').value=cal;
-    if(p)document.getElementById('input-protein').value=p;
-    if(f)document.getElementById('input-fat').value=f;
-    if(c)document.getElementById('input-carbs').value=c;
-  }catch(e){resultDiv.textContent='エラーが発生しました：'+e.message;}
+function renderFriends(){
+  const pending=friendsList.filter(f=>f.status==='pending'&&!f.i_am_requester);
+  const waiting=friendsList.filter(f=>f.status==='pending'&&f.i_am_requester);
+  const accepted=friendsList.filter(f=>f.status==='accepted');
+  // バッジ
+  const badge=document.getElementById('pending-badge');
+  if(pending.length>0){badge.style.display='inline-block';badge.textContent=pending.length;}
+  else{badge.style.display='none';}
+  // 申請中・承認待ち
+  const pendingHTML=[
+    ...pending.map(f=>`<div class="friend-item">
+      <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div><div style="font-size:11px;color:#e74c3c">📨 あなたへの申請</div></div>
+      <div>
+        <button class="friend-btn btn-accept" onclick="respondFriend('${f.friendship_id}','accepted')">承認</button>
+        <button class="friend-btn btn-reject" onclick="respondFriend('${f.friendship_id}','rejected')">拒否</button>
+      </div>
+    </div>`),
+    ...waiting.map(f=>`<div class="friend-item">
+      <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div><div style="font-size:11px;color:#888">⏳ 承認待ち</div></div>
+    </div>`)
+  ].join('');
+  document.getElementById('pending-list').innerHTML=pendingHTML||"<div class='empty'>なし</div>";
+  // 友達一覧
+  const friendsHTML=accepted.map(f=>`<div class="friend-item">
+    <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div></div>
+    <button class="friend-btn btn-view" onclick="viewFriendMeals('${f.friend_id}','${f.display_name}')">食事を見る</button>
+  </div>`).join('');
+  document.getElementById('friends-list').innerHTML=friendsHTML||"<div class='empty'>まだ友達がいません</div>";
 }
 
-function previewPhoto(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    photoBase64=e.target.result.split(',')[1];
-    const preview=document.getElementById('photo-preview');
-    preview.src=e.target.result;
-    preview.style.display='block';
-  };
-  reader.readAsDataURL(file);
-}
-
-async function analyzePhoto(){
-  if(!photoBase64){alert('写真を選択してください');return;}
-  const resultDiv=document.getElementById('ai-result');
-  resultDiv.style.display='block';
-  resultDiv.textContent='📸 写真を解析中...';
-  try{
-    const text=await callAI([{role:'user',content:[
-      {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoBase64}},
-      {type:'text',text:'この食事の写真を分析してください。必ず以下の形式のみで答えてください（他の文章は不要）：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg'}
-    ]}]);
-    resultDiv.textContent=cleanText(text);
-    const name=extractMealName(text);
-    const cal=extractNum(text,['カロリー','熱量']);
-    const p=extractNum(text,['タンパク質','蛋白質']);
-    const f=extractNum(text,['脂質','脂肪']);
-    const c=extractNum(text,['炭水化物','糖質']);
-    if(name)document.getElementById('input-meals').value=name;
-    if(cal)document.getElementById('input-calories').value=cal;
-    if(p)document.getElementById('input-protein').value=p;
-    if(f)document.getElementById('input-fat').value=f;
-    if(c)document.getElementById('input-carbs').value=c;
-  }catch(e){resultDiv.textContent='エラー：'+e.message;}
-}
-
-async function searchUser(){
+async function searchFriend(){
   const email=document.getElementById('search-email').value;
   if(!email){alert('メールアドレスを入力してください');return;}
   const res=await fetch('/api/search-user?email='+encodeURIComponent(email));
-  const data=await res.json();
-  const div=document.getElementById('search-result');
-  if(data.user){
-    div.innerHTML=`<div style="padding:10px;border:1px solid #eee;border-radius:8px;margin-top:8px">
-      <span>${data.user.email}</span>
-      <button onclick="sendFriendRequest('${data.user.id}')" style="margin-left:10px;padding:4px 10px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer">申請</button>
+  if(!res.ok){document.getElementById('search-result').innerHTML='<p style="color:#e74c3c;font-size:13px">ユーザーが見つかりません</p>';return;}
+  const user=await res.json();
+  if(user.id===currentUser.id){document.getElementById('search-result').innerHTML='<p style="color:#e74c3c;font-size:13px">自分自身には申請できません</p>';return;}
+  document.getElementById('search-result').innerHTML=`
+    <div class="friend-item">
+      <div><div class="friend-name">${user.display_name}</div><div class="friend-email">${user.email}</div></div>
+      <button class="friend-btn btn-accept" onclick="sendFriendRequest('${user.id}')">申請する</button>
     </div>`;
-  }else{
-    div.innerHTML='<div class="empty">ユーザーが見つかりません</div>';
-  }
 }
 
-async function sendFriendRequest(friendId){
-  const res=await fetch('/api/friendships',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({friend_id:friendId,action:'request',user_id:currentUser.id})
-  });
-  if(res.ok){alert('申請を送りました！');loadFriends();}
-  else{alert('申請失敗');}
-}
-
-async function loadFriends(){
-  if(!currentUser)return;
-  try{
-    const res=await fetch('/api/friendships?user_id='+currentUser.id);
-    const data=await res.json();
-    const friends=(data.friends||[]);
-    const requests=(data.requests||[]);
-    document.getElementById('friends-list').innerHTML=friends.length?
-      friends.map(f=>`<div style="padding:8px;border-bottom:1px solid #eee">
-        <span>${f.email}</span>
-        <button onclick="viewFriendMeals('${f.id}')" style="margin-left:10px;padding:4px 10px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">食事を見る</button>
-      </div>`).join(''):"<div class='empty'>友達がいません</div>";
-    document.getElementById('requests-list').innerHTML=requests.length?
-      requests.map(r=>`<div style="padding:8px;border-bottom:1px solid #eee">
-        <span>${r.email}から申請</span>
-        <button onclick="respondRequest('${r.friendship_id}','approve')" style="margin-left:8px;padding:4px 10px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">承認</button>
-        <button onclick="respondRequest('${r.friendship_id}','reject')" style="margin-left:4px;padding:4px 10px;background:#e74c3c;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">拒否</button>
-      </div>`).join(''):"<div class='empty'>申請はありません</div>";
-  }catch(e){console.error(e);}
-}
-
-async function respondRequest(friendshipId,action){
-  await fetch('/api/friendships',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({friendship_id:friendshipId,action,user_id:currentUser.id})
-  });
+async function sendFriendRequest(receiver_id){
+  const res=await fetch('/api/friend-request',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({requester_id:currentUser.id,receiver_id})});
+  const data=await res.json();
+  if(!res.ok){alert(data.error);return;}
+  alert('友達申請を送りました！');
+  document.getElementById('search-result').innerHTML='';
+  document.getElementById('search-email').value='';
   loadFriends();
 }
 
-async function viewFriendMeals(friendId){
-  const res=await fetch('/api/friend-meals/'+friendId);
+async function respondFriend(friendship_id,status){
+  await fetch('/api/friend-respond',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({friendship_id,status})});
+  loadFriends();
+}
+
+async function viewFriendMeals(friend_id,display_name){
+  const res=await fetch(`/api/friend-meals?user_id=${currentUser.id}&friend_id=${friend_id}`);
+  if(!res.ok){alert('食事データの取得に失敗しました');return;}
   const meals=await res.json();
-  alert(Array.isArray(meals)&&meals.length?meals.map(m=>m.date+' '+m.meals_data+' '+m.total_calories+'kcal').join('\n'):'食事記録がありません');
+  const grouped={};
+  meals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
+  const dates=Object.keys(grouped).sort().reverse();
+  const html=dates.map(date=>{
+    const items=grouped[date];
+    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
+    return `<div style="border-bottom:1px solid #eee;padding:10px 0">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
+        <span style="color:#667eea;font-weight:bold">${total} kcal</span>
+      </div>
+      ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data} (${m.total_calories}kcal)</div>`).join('')}
+    </div>`;
+  }).join('')||"<div class='empty'>記録がありません</div>";
+  document.getElementById('friend-meals-title').textContent=display_name+'さんの食事';
+  document.getElementById('friend-meals-list').innerHTML=html;
+  document.getElementById('friend-meals-card').style.display='block';
+}
+
+function changeDate(delta){
+  const parts=currentDate.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  d.setDate(d.getDate()+delta);
+  currentDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  document.getElementById('display-date').textContent=formatDateJP(currentDate);
+  renderHome();
+}
+
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='history') renderHistory();
+  if(name==='friends') loadFriends();
+}
+
+function selectMealType(type){
+  selectedMealType=type;
+  ['breakfast','lunch','dinner','snack'].forEach(t=>{
+    document.getElementById('btn-'+t).classList.toggle('selected',t===type);
+  });
+}
+
+// 起動時：ローカルストレージからログイン状態を復元
+const saved=localStorage.getItem('pochalog_user');
+if(saved){
+  loginSuccess(JSON.parse(saved));
 }
 </script>
 </body>

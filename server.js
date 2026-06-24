@@ -9,7 +9,25 @@ app.use(express.static('public'));
 
 const supabase=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_ANON_KEY);
 
-// 食事一覧取得（認証なし・user_idで絞り込み）
+// ログイン
+app.post('/api/login',async(req,res)=>{
+  const{email,password}=req.body;
+  const{data,error}=await supabase.auth.signInWithPassword({email,password});
+  if(error)return res.json({error:error.message});
+  res.json({user:{id:data.user.id,email:data.user.email}});
+});
+
+// 新規登録
+app.post('/api/register',async(req,res)=>{
+  const{email,password}=req.body;
+  const{data,error}=await supabase.auth.signUp({email,password});
+  if(error)return res.json({error:error.message});
+  // profilesテーブルに保存
+  await supabase.from('profiles').upsert({id:data.user.id,email:data.user.email});
+  res.json({user:{id:data.user.id,email:data.user.email}});
+});
+
+// 食事一覧取得
 app.get('/api/meals',async(req,res)=>{
   const userId=req.query.user_id;
   if(!userId)return res.status(400).json({error:'user_id required'});
@@ -61,7 +79,7 @@ app.get('/api/search-user',async(req,res)=>{
   res.json({user:data});
 });
 
-// 友達一覧・申請一覧取得
+// 友達一覧取得
 app.get('/api/friendships',async(req,res)=>{
   const userId=req.query.user_id;
   if(!userId)return res.status(400).json({error:'user_id required'});

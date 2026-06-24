@@ -194,12 +194,24 @@ function formatDateJP(dateStr){
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
 }
 
+// Markdownを除去してプレーンテキストに変換
+function cleanText(text){
+  return text.replace(/\*\*/g,'').replace(/##/g,'').replace(/\*/g,'').trim();
+}
+
 // 数値抽出（全角・半角コロン、約の有無に対応）
 function extractNum(text,keywords){
   for(const kw of keywords){
     const m=text.match(new RegExp(kw+'[：:約\\s]*([\\d.]+)'));
     if(m)return m[1];
   }
+  return null;
+}
+
+// 食事内容抽出
+function extractMealName(text){
+  const m=text.match(/食事内容[：:約\s]*([^\n\r]+)/);
+  if(m)return cleanText(m[1]);
   return null;
 }
 
@@ -395,12 +407,14 @@ async function aiEstimate(){
   resultDiv.style.display='block';
   resultDiv.textContent='🤖 AI計算中...';
   try{
-    const text=await callAI([{role:'user',content:`以下の食事のカロリーとPFCを教えてください：${meals}\n\n必ず以下の形式で答えてください：\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg`}]);
-    resultDiv.textContent=text;
+    const text=await callAI([{role:'user',content:`以下の食事のカロリーとPFCを教えてください：${meals}\n\n必ず以下の形式のみで答えてください（他の文章は不要）：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg`}]);
+    resultDiv.textContent=cleanText(text);
+    const name=extractMealName(text);
     const cal=extractNum(text,['カロリー','熱量']);
     const p=extractNum(text,['タンパク質','蛋白質']);
     const f=extractNum(text,['脂質','脂肪']);
     const c=extractNum(text,['炭水化物','糖質']);
+    if(name)document.getElementById('input-meals').value=name;
     if(cal)document.getElementById('input-calories').value=cal;
     if(p)document.getElementById('input-protein').value=p;
     if(f)document.getElementById('input-fat').value=f;
@@ -429,18 +443,15 @@ async function analyzePhoto(){
   try{
     const text=await callAI([{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoBase64}},
-      {type:'text',text:'この食事の写真を分析してください。必ず以下の形式で答えてください：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg'}
+      {type:'text',text:'この食事の写真を分析してください。必ず以下の形式のみで答えてください（他の文章は不要）：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg'}
     ]}]);
-    resultDiv.textContent=text;
-    const name=extractNum(text,['食事内容']);
+    resultDiv.textContent=cleanText(text);
+    const name=extractMealName(text);
     const cal=extractNum(text,['カロリー','熱量']);
     const p=extractNum(text,['タンパク質','蛋白質']);
     const f=extractNum(text,['脂質','脂肪']);
     const c=extractNum(text,['炭水化物','糖質']);
-    if(name){
-      const nameMatch=text.match(/食事内容[：:約\s]*([^\n]+)/);
-      if(nameMatch)document.getElementById('input-meals').value=nameMatch[1].trim();
-    }
+    if(name)document.getElementById('input-meals').value=name;
     if(cal)document.getElementById('input-calories').value=cal;
     if(p)document.getElementById('input-protein').value=p;
     if(f)document.getElementById('input-fat').value=f;

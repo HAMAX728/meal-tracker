@@ -48,6 +48,13 @@ app.post('/api/meals',async(req,res)=>{
   res.json({success:true});
 });
 
+app.delete('/api/meals/:id',async(req,res)=>{
+  const{id}=req.params;
+  const{error}=await supabase.from('meals').delete().eq('id',id);
+  if(error) return res.status(500).json({error:error.message});
+  res.json({success:true});
+});
+
 app.get('/api/search-user',async(req,res)=>{
   const{email}=req.query;
   const{data,error}=await supabase.from('profiles').select('id,email,display_name').eq('email',email).single();
@@ -97,7 +104,6 @@ app.get('/api/friend-meals',async(req,res)=>{
   res.json(data||[]);
 });
 
-// AI分析エンドポイント
 app.post('/api/ai',async(req,res)=>{
   const{system,user,imageBase64}=req.body;
   const apiKey=process.env.ANTHROPIC_API_KEY;

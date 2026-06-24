@@ -14,8 +14,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-size:13px;color:#888;border-bottom:3px solid transparent;transition:all 0.2s}
 .tab.active{color:#667eea;border-bottom:3px solid #667eea;font-weight:bold}
 .content{padding:16px;max-width:600px;margin:0 auto}
-.page{display:none}
-.page.active{display:block}
+.page{display:none}.page.active{display:block}
 .card{background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
 .card h2{font-size:16px;color:#333;margin-bottom:12px}
 .calorie-ring{text-align:center;padding:20px 0}
@@ -40,6 +39,8 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;transition:opacity 0.2s;margin-top:8px}
 .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:white}
 .btn-secondary{background:#f0f0f0;color:#555}
+.btn-ai{background:linear-gradient(135deg,#11998e,#38ef7d);color:white}
+.btn-photo{background:linear-gradient(135deg,#f7971e,#ffd200);color:#333}
 .btn:active{opacity:0.8}
 .meal-type-buttons{display:flex;gap:8px;margin:8px 0}
 .meal-type-btn{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;background:white;font-size:12px;cursor:pointer;text-align:center;transition:all 0.2s}
@@ -59,6 +60,15 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .nutrient-card.protein .value{color:#e74c3c}
 .nutrient-card.fat .value{color:#f39c12}
 .nutrient-card.carbs .value{color:#27ae60}
+/* AI */
+.ai-loading{text-align:center;padding:16px;color:#667eea;font-size:14px}
+.ai-bubble{background:#f0f4ff;border-radius:10px;padding:12px;font-size:13px;color:#333;margin-top:8px}
+.nutrition-breakdown{margin-top:8px}
+.nutrition-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px}
+.nutrition-item-name{color:#333;font-weight:bold}
+.nutrition-item-values{color:#888}
+.nutrition-total{background:#667eea;color:white;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between}
+.photo-preview{width:100%;border-radius:8px;margin:8px 0;max-height:200px;object-fit:cover;display:none}
 /* 認証 */
 #auth-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:100;display:flex;align-items:center;justify-content:center}
 .auth-card{background:white;border-radius:16px;padding:32px 24px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
@@ -80,7 +90,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 </head>
 <body>
 
-<!-- 認証画面 -->
 <div id="auth-screen">
   <div class="auth-card">
     <h2>🍽️ ぽちゃログ</h2>
@@ -89,13 +98,11 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">ログイン</div>
       <div class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">新規登録</div>
     </div>
-    <!-- ログイン -->
     <div id="auth-login">
       <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" placeholder="example@mail.com"></div>
       <div class="form-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード"></div>
       <button class="btn btn-primary" onclick="doLogin()">ログイン</button>
     </div>
-    <!-- 登録 -->
     <div id="auth-register" style="display:none">
       <div class="form-group"><label>表示名（ニックネーム）</label><input type="text" id="reg-name" placeholder="例：マックス"></div>
       <div class="form-group"><label>メールアドレス</label><input type="email" id="reg-email" placeholder="example@mail.com"></div>
@@ -106,7 +113,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 
-<!-- メイン -->
 <div class="header">
   <h1>🍽️ ぽちゃログ</h1>
   <p id="header-info"></p>
@@ -145,6 +151,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div id="today-meals"><div class="empty">まだ記録がありません</div></div>
     </div>
   </div>
+
   <!-- 追加 -->
   <div class="page" id="page-add">
     <div class="card">
@@ -160,7 +167,15 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         </div>
       </div>
       <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3"></textarea></div>
-      <div class="form-group"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
+      <button class="btn btn-ai" onclick="calcNutritionFromText()">🤖 AIでカロリー計算</button>
+      <div class="form-group" style="margin-top:12px">
+        <label>📷 写真からAI分析</label>
+        <input type="file" id="photo-input" accept="image/*" onchange="onPhotoSelected(event)" style="margin-top:4px">
+        <img id="photo-preview" class="photo-preview">
+        <button class="btn btn-photo" onclick="analyzePhoto()" style="margin-top:6px">📷 写真を分析する</button>
+      </div>
+      <div id="ai-calc-result"></div>
+      <div class="form-group" style="margin-top:12px"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
       <div class="nutrients-row">
         <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30"></div>
         <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15"></div>
@@ -169,6 +184,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
     </div>
   </div>
+
   <!-- 履歴 -->
   <div class="page" id="page-history">
     <div class="card">
@@ -176,6 +192,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div id="history-list"><div class="empty">読み込み中...</div></div>
     </div>
   </div>
+
   <!-- 友達 -->
   <div class="page" id="page-friends">
     <div class="card">
@@ -192,7 +209,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <h2>👥 友達一覧</h2>
       <div id="friends-list"><div class="empty">まだ友達がいません</div></div>
     </div>
-    <!-- 友達の食事表示 -->
     <div class="card" id="friend-meals-card" style="display:none">
       <h2 id="friend-meals-title">友達の食事</h2>
       <button class="btn btn-secondary" onclick="document.getElementById('friend-meals-card').style.display='none'" style="margin-bottom:12px">✕ 閉じる</button>
@@ -211,6 +227,7 @@ let selectedMealType='breakfast';
 let allMeals=[];
 let currentUser=null;
 let friendsList=[];
+let currentPhotoBase64=null;
 const CALORIE_GOAL=2000;
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
@@ -220,7 +237,6 @@ function formatDateJP(dateStr){
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
 }
 
-// 認証
 function switchAuthTab(tab){
   document.getElementById('auth-login').style.display=tab==='login'?'block':'none';
   document.getElementById('auth-register').style.display=tab==='register'?'block':'none';
@@ -262,12 +278,6 @@ function loginSuccess(user){
   loadFriends();
 }
 
-function doLogout(){
-  localStorage.removeItem('pochalog_user');
-  location.reload();
-}
-
-// 食事
 async function loadMeals(){
   if(!currentUser) return;
   const res=await fetch('/api/meals?user_id='+currentUser.id);
@@ -341,11 +351,95 @@ async function saveMeal(){
   document.getElementById('input-protein').value='';
   document.getElementById('input-fat').value='';
   document.getElementById('input-carbs').value='';
+  document.getElementById('ai-calc-result').innerHTML='';
+  currentPhotoBase64=null;
+  document.getElementById('photo-preview').style.display='none';
   alert('保存しました！');
   await loadMeals();
 }
 
-// 友達
+// AI機能
+async function callAI(system,user,imageBase64){
+  const body={system,user};
+  if(imageBase64) body.imageBase64=imageBase64;
+  const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const data=await res.json();
+  return data.text||'';
+}
+
+function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showNutritionBreakdown(parsed){
+  const resultDiv=document.getElementById('ai-calc-result');
+  let html="<div class='nutrition-breakdown'>";
+  if(parsed.items&&parsed.items.length>0){
+    parsed.items.forEach(item=>{
+      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal P:${item.protein}g F:${item.fat}g C:${item.carbs}g</span></div>`;
+    });
+  }
+  const t=parsed.total||{};
+  html+=`<div class='nutrition-total'><span>📊 合計</span><span>${t.calories||0}kcal P:${t.protein||0}g F:${t.fat||0}g C:${t.carbs||0}g</span></div></div>
+  <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(parsed.total||{})})'>✅ この値を使用する</button>`;
+  resultDiv.innerHTML=html;
+}
+
+function applyAIResult(total){
+  document.getElementById('input-calories').value=total.calories||0;
+  document.getElementById('input-protein').value=total.protein||0;
+  document.getElementById('input-fat').value=total.fat||0;
+  document.getElementById('input-carbs').value=total.carbs||0;
+}
+
+async function calcNutritionFromText(){
+  const meals=document.getElementById('input-meals').value.trim();
+  const resultDiv=document.getElementById('ai-calc-result');
+  if(!meals){alert('食事内容を入力してください');return;}
+  resultDiv.innerHTML="<div class='ai-loading'>🤖 AIが計算中...</div>";
+  try{
+    const text=await callAI(
+      'あなたは栄養士AIです。食事内容から各食品のカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
+      `以下の食事のカロリーと栄養素をJSON形式で:\n${meals}`
+    );
+    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    showNutritionBreakdown(parsed);
+  }catch(e){
+    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ 計算に失敗しました。もう一度試してください。</div>";
+  }
+}
+
+function onPhotoSelected(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const base64=e.target.result.split(',')[1];
+    currentPhotoBase64=base64;
+    const preview=document.getElementById('photo-preview');
+    preview.src=e.target.result;
+    preview.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzePhoto(){
+  const resultDiv=document.getElementById('ai-calc-result');
+  if(!currentPhotoBase64){alert('写真を選んでください');return;}
+  resultDiv.innerHTML="<div class='ai-loading'>📷 AIが写真を分析中...</div>";
+  try{
+    const text=await callAI(
+      'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
+      'この料理の写真を分析して各食品のカロリーと栄養素をJSON形式で教えてください。',
+      currentPhotoBase64
+    );
+    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(parsed.meals) document.getElementById('input-meals').value=parsed.meals;
+    showNutritionBreakdown(parsed);
+  }catch(e){
+    resultDiv.innerHTML="<div class='ai-bubble'>⚠️ 写真の分析に失敗しました。</div>";
+  }
+}
+
+// 友達機能
 async function loadFriends(){
   if(!currentUser) return;
   const res=await fetch('/api/friends?user_id='+currentUser.id);
@@ -358,25 +452,20 @@ function renderFriends(){
   const pending=friendsList.filter(f=>f.status==='pending'&&!f.i_am_requester);
   const waiting=friendsList.filter(f=>f.status==='pending'&&f.i_am_requester);
   const accepted=friendsList.filter(f=>f.status==='accepted');
-  // バッジ
   const badge=document.getElementById('pending-badge');
   if(pending.length>0){badge.style.display='inline-block';badge.textContent=pending.length;}
   else{badge.style.display='none';}
-  // 申請中・承認待ち
   const pendingHTML=[
     ...pending.map(f=>`<div class="friend-item">
       <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div><div style="font-size:11px;color:#e74c3c">📨 あなたへの申請</div></div>
-      <div>
-        <button class="friend-btn btn-accept" onclick="respondFriend('${f.friendship_id}','accepted')">承認</button>
-        <button class="friend-btn btn-reject" onclick="respondFriend('${f.friendship_id}','rejected')">拒否</button>
-      </div>
+      <div><button class="friend-btn btn-accept" onclick="respondFriend('${f.friendship_id}','accepted')">承認</button>
+      <button class="friend-btn btn-reject" onclick="respondFriend('${f.friendship_id}','rejected')">拒否</button></div>
     </div>`),
     ...waiting.map(f=>`<div class="friend-item">
       <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div><div style="font-size:11px;color:#888">⏳ 承認待ち</div></div>
     </div>`)
   ].join('');
   document.getElementById('pending-list').innerHTML=pendingHTML||"<div class='empty'>なし</div>";
-  // 友達一覧
   const friendsHTML=accepted.map(f=>`<div class="friend-item">
     <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div></div>
     <button class="friend-btn btn-view" onclick="viewFriendMeals('${f.friend_id}','${f.display_name}')">食事を見る</button>
@@ -391,16 +480,14 @@ async function searchFriend(){
   if(!res.ok){document.getElementById('search-result').innerHTML='<p style="color:#e74c3c;font-size:13px">ユーザーが見つかりません</p>';return;}
   const user=await res.json();
   if(user.id===currentUser.id){document.getElementById('search-result').innerHTML='<p style="color:#e74c3c;font-size:13px">自分自身には申請できません</p>';return;}
-  document.getElementById('search-result').innerHTML=`
-    <div class="friend-item">
-      <div><div class="friend-name">${user.display_name}</div><div class="friend-email">${user.email}</div></div>
-      <button class="friend-btn btn-accept" onclick="sendFriendRequest('${user.id}')">申請する</button>
-    </div>`;
+  document.getElementById('search-result').innerHTML=`<div class="friend-item">
+    <div><div class="friend-name">${user.display_name}</div><div class="friend-email">${user.email}</div></div>
+    <button class="friend-btn btn-accept" onclick="sendFriendRequest('${user.id}')">申請する</button>
+  </div>`;
 }
 
 async function sendFriendRequest(receiver_id){
-  const res=await fetch('/api/friend-request',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({requester_id:currentUser.id,receiver_id})});
+  const res=await fetch('/api/friend-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requester_id:currentUser.id,receiver_id})});
   const data=await res.json();
   if(!res.ok){alert(data.error);return;}
   alert('友達申請を送りました！');
@@ -410,8 +497,7 @@ async function sendFriendRequest(receiver_id){
 }
 
 async function respondFriend(friendship_id,status){
-  await fetch('/api/friend-respond',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({friendship_id,status})});
+  await fetch('/api/friend-respond',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({friendship_id,status})});
   loadFriends();
 }
 
@@ -463,11 +549,8 @@ function selectMealType(type){
   });
 }
 
-// 起動時：ローカルストレージからログイン状態を復元
 const saved=localStorage.getItem('pochalog_user');
-if(saved){
-  loginSuccess(JSON.parse(saved));
-}
+if(saved) loginSuccess(JSON.parse(saved));
 </script>
 </body>
 </html>

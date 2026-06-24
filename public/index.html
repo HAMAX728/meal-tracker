@@ -194,6 +194,15 @@ function formatDateJP(dateStr){
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
 }
 
+// 数値抽出（全角・半角コロン、約の有無に対応）
+function extractNum(text,keywords){
+  for(const kw of keywords){
+    const m=text.match(new RegExp(kw+'[：:約\\s]*([\\d.]+)'));
+    if(m)return m[1];
+  }
+  return null;
+}
+
 document.getElementById('header-date').textContent=formatDateJP(getLocalToday());
 
 async function doLogin(){
@@ -201,11 +210,7 @@ async function doLogin(){
   const password=document.getElementById('login-password').value;
   if(!email||!password){alert('メールとパスワードを入力してください');return;}
   try{
-    const res=await fetch('/api/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password})
-    });
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const data=await res.json();
     if(data.error){alert('ログイン失敗：'+data.error);return;}
     currentUser=data.user;
@@ -218,11 +223,7 @@ async function doRegister(){
   const password=document.getElementById('reg-password').value;
   if(!email||!password){alert('メールとパスワードを入力してください');return;}
   try{
-    const res=await fetch('/api/register',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,password})
-    });
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const data=await res.json();
     if(data.error){alert('登録失敗：'+data.error);return;}
     alert('登録しました！ログインしてください。');
@@ -394,17 +395,17 @@ async function aiEstimate(){
   resultDiv.style.display='block';
   resultDiv.textContent='🤖 AI計算中...';
   try{
-    const text=await callAI([{role:'user',content:`以下の食事のカロリーとPFCを日本語で教えてください：${meals}\n\n返答形式：カロリー:○○kcal タンパク質:○g 脂質:○g 炭水化物:○g\n簡潔に。`}]);
+    const text=await callAI([{role:'user',content:`以下の食事のカロリーとPFCを教えてください：${meals}\n\n必ず以下の形式で答えてください：\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg`}]);
     resultDiv.textContent=text;
-    const calMatch=text.match(/カロリー[：:]\s*(\d+)/);
-    const pMatch=text.match(/タンパク質[：:]\s*([\d.]+)/);
-    const fMatch=text.match(/脂質[：:]\s*([\d.]+)/);
-    const cMatch=text.match(/炭水化物[：:]\s*([\d.]+)/);
-    if(calMatch)document.getElementById('input-calories').value=calMatch[1];
-    if(pMatch)document.getElementById('input-protein').value=pMatch[1];
-    if(fMatch)document.getElementById('input-fat').value=fMatch[1];
-    if(cMatch)document.getElementById('input-carbs').value=cMatch[1];
-  }catch(e){resultDiv.textContent='エラー：'+e.message;}
+    const cal=extractNum(text,['カロリー','熱量']);
+    const p=extractNum(text,['タンパク質','蛋白質']);
+    const f=extractNum(text,['脂質','脂肪']);
+    const c=extractNum(text,['炭水化物','糖質']);
+    if(cal)document.getElementById('input-calories').value=cal;
+    if(p)document.getElementById('input-protein').value=p;
+    if(f)document.getElementById('input-fat').value=f;
+    if(c)document.getElementById('input-carbs').value=c;
+  }catch(e){resultDiv.textContent='エラーが発生しました：'+e.message;}
 }
 
 function previewPhoto(input){
@@ -428,19 +429,22 @@ async function analyzePhoto(){
   try{
     const text=await callAI([{role:'user',content:[
       {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoBase64}},
-      {type:'text',text:'この食事の写真のカロリーとPFCを日本語で教えてください。返答形式：食事内容:○○ カロリー:○○kcal タンパク質:○g 脂質:○g 炭水化物:○g 簡潔に。'}
+      {type:'text',text:'この食事の写真を分析してください。必ず以下の形式で答えてください：\n食事内容:XXX\nカロリー:XXXkcal\nタンパク質:XXg\n脂質:XXg\n炭水化物:XXg'}
     ]}]);
     resultDiv.textContent=text;
-    const nameMatch=text.match(/食事内容[：:]\s*([^\n]+)/);
-    const calMatch=text.match(/カロリー[：:]\s*(\d+)/);
-    const pMatch=text.match(/タンパク質[：:]\s*([\d.]+)/);
-    const fMatch=text.match(/脂質[：:]\s*([\d.]+)/);
-    const cMatch=text.match(/炭水化物[：:]\s*([\d.]+)/);
-    if(nameMatch)document.getElementById('input-meals').value=nameMatch[1];
-    if(calMatch)document.getElementById('input-calories').value=calMatch[1];
-    if(pMatch)document.getElementById('input-protein').value=pMatch[1];
-    if(fMatch)document.getElementById('input-fat').value=fMatch[1];
-    if(cMatch)document.getElementById('input-carbs').value=cMatch[1];
+    const name=extractNum(text,['食事内容']);
+    const cal=extractNum(text,['カロリー','熱量']);
+    const p=extractNum(text,['タンパク質','蛋白質']);
+    const f=extractNum(text,['脂質','脂肪']);
+    const c=extractNum(text,['炭水化物','糖質']);
+    if(name){
+      const nameMatch=text.match(/食事内容[：:約\s]*([^\n]+)/);
+      if(nameMatch)document.getElementById('input-meals').value=nameMatch[1].trim();
+    }
+    if(cal)document.getElementById('input-calories').value=cal;
+    if(p)document.getElementById('input-protein').value=p;
+    if(f)document.getElementById('input-fat').value=f;
+    if(c)document.getElementById('input-carbs').value=c;
   }catch(e){resultDiv.textContent='エラー：'+e.message;}
 }
 

@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>食事トラッカー</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh}
@@ -63,9 +62,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .auth-tab{flex:1;padding:10px;text-align:center;cursor:pointer;color:#888;font-size:14px}
 .auth-tab.active{color:#667eea;border-bottom:2px solid #667eea;font-weight:bold}
 .user-info{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;color:#666}
-.meal-actions{display:flex;gap:8px;margin-top:6px}
-.meal-actions button{padding:4px 10px;font-size:11px;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:white}
-.meal-actions .del-btn{color:#e74c3c;border-color:#e74c3c}
+.meal-actions button{padding:4px 10px;font-size:11px;border:1px solid #e74c3c;border-radius:6px;cursor:pointer;background:white;color:#e74c3c;margin-top:6px}
 .ai-result{background:#f0f4ff;border-radius:10px;padding:12px;margin-top:12px;font-size:13px;color:#444;line-height:1.6}
 .photo-preview{width:100%;border-radius:8px;margin:8px 0;max-height:200px;object-fit:cover}
 </style>
@@ -179,10 +176,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 </div>
 
 <script>
-const SUPABASE_URL='https://maoabwlhojqcfjcvxtxq.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hb2Fid2xob2pxY2ZqY3Z4dHhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NzUyOTAsImV4cCI6MjA2NTU1MTI5MH0.rKMEHoMcxVTPWMNfXcpTM0b9ePvmDvR8JuKS4ZKTtQ0';
-const _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
 let currentDate=getLocalToday();
 let selectedMealType='breakfast';
 let allMeals=[];
@@ -203,22 +196,55 @@ function formatDateJP(dateStr){
 
 document.getElementById('header-date').textContent=formatDateJP(getLocalToday());
 
-_supabase.auth.onAuthStateChange((event,session)=>{
-  if(session){
-    currentUser=session.user;
-    document.getElementById('auth-section').style.display='none';
-    document.getElementById('main-section').style.display='block';
-    document.getElementById('user-email-display').textContent=currentUser.email;
-    document.getElementById('display-date').textContent=formatDateJP(currentDate);
-    document.getElementById('input-date').value=getLocalToday();
-    loadMeals();
-    loadFriends();
-  } else {
-    currentUser=null;
-    document.getElementById('auth-section').style.display='block';
-    document.getElementById('main-section').style.display='none';
-  }
-});
+async function doLogin(){
+  const email=document.getElementById('login-email').value;
+  const password=document.getElementById('login-password').value;
+  if(!email||!password){alert('メールとパスワードを入力してください');return;}
+  try{
+    const res=await fetch('/api/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    });
+    const data=await res.json();
+    if(data.error){alert('ログイン失敗：'+data.error);return;}
+    currentUser=data.user;
+    showMain();
+  }catch(e){alert('エラー：'+e.message);}
+}
+
+async function doRegister(){
+  const email=document.getElementById('reg-email').value;
+  const password=document.getElementById('reg-password').value;
+  if(!email||!password){alert('メールとパスワードを入力してください');return;}
+  try{
+    const res=await fetch('/api/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    });
+    const data=await res.json();
+    if(data.error){alert('登録失敗：'+data.error);return;}
+    alert('登録しました！ログインしてください。');
+    doSwitchAuthTab('login');
+  }catch(e){alert('エラー：'+e.message);}
+}
+
+function doLogout(){
+  currentUser=null;
+  allMeals=[];
+  document.getElementById('auth-section').style.display='block';
+  document.getElementById('main-section').style.display='none';
+}
+
+function showMain(){
+  document.getElementById('auth-section').style.display='none';
+  document.getElementById('main-section').style.display='block';
+  document.getElementById('user-email-display').textContent=currentUser.email;
+  document.getElementById('display-date').textContent=formatDateJP(currentDate);
+  document.getElementById('input-date').value=getLocalToday();
+  loadMeals();
+}
 
 function doSwitchAuthTab(tab){
   document.getElementById('auth-login').style.display=tab==='login'?'block':'none';
@@ -227,26 +253,7 @@ function doSwitchAuthTab(tab){
   document.getElementById('atab-register').classList.toggle('active',tab==='register');
 }
 
-async function doLogin(){
-  const email=document.getElementById('login-email').value;
-  const password=document.getElementById('login-password').value;
-  if(!email||!password){alert('メールとパスワードを入力してください');return;}
-  const{error}=await _supabase.auth.signInWithPassword({email,password});
-  if(error){alert('ログイン失敗：'+error.message);}
-}
-
-async function doRegister(){
-  const email=document.getElementById('reg-email').value;
-  const password=document.getElementById('reg-password').value;
-  if(!email||!password){alert('メールとパスワードを入力してください');return;}
-  const{error}=await _supabase.auth.signUp({email,password});
-  if(error){alert('登録失敗：'+error.message);}
-  else{alert('登録しました！');}
-}
-
-async function doLogout(){
-  await _supabase.auth.signOut();
-}
+document.getElementById('auth-section').style.display='block';
 
 function showPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -311,9 +318,7 @@ function renderHome(){
         <div class="meal-content">${m.meals_data}</div>
         <div class="meal-cal">${m.total_calories} kcal</div>
         <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g</div>
-        <div class="meal-actions">
-          <button class="del-btn" onclick="deleteMeal('${m.id}')">🗑️ 削除</button>
-        </div>
+        <div class="meal-actions"><button onclick="deleteMeal('${m.id}')">🗑️ 削除</button></div>
       </div>`).join('');
   }).join('');
   document.getElementById('today-meals').innerHTML=html||"<div class='empty'>まだ記録がありません</div>";
@@ -358,7 +363,7 @@ async function saveMeal(){
       document.getElementById('photo-preview').style.display='none';
       alert('保存しました！');
       await loadMeals();
-    } else {
+    }else{
       const err=await res.json();
       alert('保存失敗：'+JSON.stringify(err));
     }
@@ -399,7 +404,7 @@ async function aiEstimate(){
     if(pMatch)document.getElementById('input-protein').value=pMatch[1];
     if(fMatch)document.getElementById('input-fat').value=fMatch[1];
     if(cMatch)document.getElementById('input-carbs').value=cMatch[1];
-  }catch(e){resultDiv.textContent='エラーが発生しました：'+e.message;}
+  }catch(e){resultDiv.textContent='エラー：'+e.message;}
 }
 
 function previewPhoto(input){
@@ -450,7 +455,7 @@ async function searchUser(){
       <span>${data.user.email}</span>
       <button onclick="sendFriendRequest('${data.user.id}')" style="margin-left:10px;padding:4px 10px;background:#667eea;color:white;border:none;border-radius:6px;cursor:pointer">申請</button>
     </div>`;
-  } else {
+  }else{
     div.innerHTML='<div class="empty">ユーザーが見つかりません</div>';
   }
 }

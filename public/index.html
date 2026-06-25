@@ -404,6 +404,7 @@ async function loadMeals(){
   allMeals=await res.json();
   if(!Array.isArray(allMeals)) allMeals=[];
   renderHome();
+  loadHomeSteps();
 }
 
 async function deleteMeal(id){
@@ -412,6 +413,48 @@ async function deleteMeal(id){
   await loadMeals();
 }
 
+async function loadHomeSteps(){
+  if(!weightGoal||!currentUser) return;
+  const res=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
+  const data=await res.json();
+  const steps=data.steps||0;
+  document.getElementById('steps-input-home').value=steps||'';
+  if(steps>0&&weightGoal){
+    const bmr=calcBMR(weightGoal);
+    const stepCal=Math.round(steps*0.035);
+    const consumed=Math.round(bmr+stepCal);
+    const dayMeals=allMeals.filter(m=>m.date===currentDate);
+    const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+    const deficit=consumed-intake;
+    document.getElementById('home-step-cal').textContent=stepCal;
+    document.getElementById('home-total-consumed').textContent=consumed;
+    document.getElementById('home-deficit').textContent=(deficit>0?'-':'+')+Math.abs(deficit);
+    document.getElementById('home-steps-stats').style.display='block';
+  }else{
+    document.getElementById('home-steps-stats').style.display='none';
+  }
+}
+async function loadHomeSteps(){
+  if(!weightGoal||!currentUser) return;
+  const res=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
+  const data=await res.json();
+  const steps=data.steps||0;
+  document.getElementById('steps-input-home').value=steps||'';
+  if(steps>0&&weightGoal){
+    const bmr=calcBMR(weightGoal);
+    const stepCal=Math.round(steps*0.035);
+    const consumed=Math.round(bmr+stepCal);
+    const dayMeals=allMeals.filter(m=>m.date===currentDate);
+    const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+    const deficit=consumed-intake;
+    document.getElementById('home-step-cal').textContent=stepCal;
+    document.getElementById('home-total-consumed').textContent=consumed;
+    document.getElementById('home-deficit').textContent=(deficit>0?'-':'+')+Math.abs(deficit);
+    document.getElementById('home-steps-stats').style.display='block';
+  }else{
+    document.getElementById('home-steps-stats').style.display='none';
+  }
+}
 function renderHome(){
   const dayMeals=allMeals.filter(m=>m.date===currentDate);
   const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
@@ -920,6 +963,7 @@ function changeDate(delta){
   currentDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   document.getElementById('display-date').textContent=formatDateJP(currentDate);
   renderHome();
+  loadHomeSteps();
 }
 
 function showPage(name,el){

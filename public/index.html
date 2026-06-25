@@ -514,7 +514,13 @@ async function renderWeightStats(){
     dateMap[m.date]+=(m.total_calories||0);
   });
   // 累計は今日以外の日の収支（今日は現在値で表示）
-  let cumulativeDeficit=todayDeficit;
+  let cumulativeDeficit=0;
+  for(const date of Object.keys(dateMap)){
+    const dayIntake=dateMap[date];
+    const daySteps=stepsMap[date]||0;
+    const dayConsumed=Math.round(bmr+daySteps*0.035);
+    cumulativeDeficit+=(dayConsumed-dayIntake);
+  }
   const progressPct=Math.min(Math.max((cumulativeDeficit/totalDeficit)*100,0),100);
   const daysToGoal=todayDeficit>0?Math.ceil((totalDeficit-cumulativeDeficit)/todayDeficit):null;
   // 今日の収支表示

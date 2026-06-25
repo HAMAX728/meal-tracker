@@ -181,10 +181,26 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       </div>
     </div>
     <div class="card">
-      <h2>👟 今日の歩数</h2>
+      <h2>👟 今日の歩数・消費カロリー</h2>
       <div class="steps-row">
         <input type="number" id="steps-input-home" placeholder="今日の歩数を入力">
         <button onclick="saveStepsHome()">記録</button>
+      </div>
+      <div id="home-steps-stats" style="display:none;margin-top:8px">
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;background:#f8f9ff;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:bold;color:#667eea" id="home-step-cal">0</div>
+            <div style="font-size:11px;color:#888">歩行消費 kcal</div>
+          </div>
+          <div style="flex:1;background:#f8f9ff;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:bold;color:#27ae60" id="home-total-consumed">0</div>
+            <div style="font-size:11px;color:#888">総消費 kcal</div>
+          </div>
+          <div style="flex:1;background:#f8f9ff;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:bold;color:#e74c3c" id="home-deficit">0</div>
+            <div style="font-size:11px;color:#888">今日の収支</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -493,6 +509,18 @@ async function saveStepsHome(){
   const steps=parseInt(document.getElementById('steps-input-home').value)||0;
   await fetch('/api/steps',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({user_id:currentUser.id,date:currentDate,steps})});
+  if(weightGoal){
+    const bmr=calcBMR(weightGoal);
+    const stepCal=Math.round(steps*0.035);
+    const consumed=Math.round(bmr+stepCal);
+    const dayMeals=allMeals.filter(m=>m.date===currentDate);
+    const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+    const deficit=consumed-intake;
+    document.getElementById('home-step-cal').textContent=stepCal;
+    document.getElementById('home-total-consumed').textContent=consumed;
+    document.getElementById('home-deficit').textContent=(deficit>0?'-':'+')+Math.abs(deficit);
+    document.getElementById('home-steps-stats').style.display='block';
+  }
   alert('歩数を記録しました！');
 }
 async function saveSteps(){

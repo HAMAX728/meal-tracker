@@ -668,7 +668,7 @@ async function renderHistory(){
   });
   const totalNeeded=weightGoal?(weightGoal.current_weight-weightGoal.target_weight)*7200:0;
   const rows=dates.map(date=>{
-    const items=grouped[date];
+    const items=grouped[date]||[];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
     const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
     const totalF=items.reduce((s,m)=>s+(m.fat||0),0);

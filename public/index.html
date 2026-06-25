@@ -534,7 +534,7 @@ async function renderWeightStats(){
   const stepsRes=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
   const stepsData=await stepsRes.json();
   const steps=stepsData.steps||0;
-  document.getElementById('steps-input').value=steps||'';
+  
   const stepCal=steps*0.035;
   const consumed=Math.round(bmr+stepCal);
   const dayMeals=allMeals.filter(m=>m.date===currentDate);

@@ -636,8 +636,9 @@ async function renderWeightStats(){
 async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
-  const dates=Object.keys(grouped).sort().reverse();
-  const datesAsc=Object.keys(grouped).sort();
+  const allDates=new Set([...Object.keys(grouped),...Object.keys(stepsMap)]);
+  const dates=[...allDates].sort().reverse();
+  const datesAsc=[...allDates].sort();
   const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
   // 歩数データ取得
   let stepsMap={};

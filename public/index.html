@@ -569,7 +569,18 @@ async function renderHistory(){
     const consumed=bmr+stepCal;
     cumulative+=consumed-total;
   });
-  cumulative=0;
+  const cumulativeByDate={};
+  let runningTotal=0;
+  datesAsc.forEach(date=>{
+    const items=grouped[date];
+    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
+    const steps=stepsMap[date]||0;
+    const stepCal=Math.round(steps*0.035);
+    const consumed=bmr+stepCal;
+    runningTotal+=consumed-total;
+    cumulativeByDate[date]=runningTotal;
+  });
+  const totalNeeded=weightGoal?(weightGoal.current_weight-weightGoal.target_weight)*7200:0;
   const rows=dates.map(date=>{
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
@@ -597,9 +608,9 @@ async function renderHistory(){
           <div style="font-size:11px;color:#888">消費${consumed} / 摂取${total}</div>
         </div>
         <div style="flex:1;background:#f0f4ff;border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:11px;color:#888">累計赤字</div>
-          <div style="font-size:18px;font-weight:bold;color:#667eea">${cumulative>0?'−':'+'}${Math.abs(Math.round(cumulative)).toLocaleString()}<span style="font-size:11px">kcal</span></div>
-          <div style="font-size:11px;color:#888">約${weightLost}kg分</div>
+          <div style="font-size:11px;color:#888">累計赤字 / 目標${Math.round(totalNeeded).toLocaleString()}kcal</div>
+          <div style="font-size:18px;font-weight:bold;color:#667eea">${cumulativeByDate[date]>0?'−':'+'}${Math.abs(Math.round(cumulativeByDate[date]||0)).toLocaleString()}<span style="font-size:11px">kcal</span></div>
+          <div style="font-size:11px;color:#888">${totalNeeded>0?Math.min(Math.round((cumulativeByDate[date]/totalNeeded)*100),100):0}%達成</div>
         </div>
       </div>`:''}
       ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data}</div>`).join('')}

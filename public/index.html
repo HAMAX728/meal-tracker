@@ -11,7 +11,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .header h1{font-size:24px;margin-bottom:4px}
 .header p{font-size:13px;opacity:0.8}
 .tabs{display:flex;background:white;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-.tab{flex:1;padding:14px;text-align:center;cursor:pointer;font-size:13px;color:#888;border-bottom:3px solid transparent;transition:all 0.2s}
+.tab{flex:1;padding:12px 4px;text-align:center;cursor:pointer;font-size:11px;color:#888;border-bottom:3px solid transparent;transition:all 0.2s}
 .tab.active{color:#667eea;border-bottom:3px solid #667eea;font-weight:bold}
 .content{padding:16px;max-width:600px;margin:0 auto}
 .page{display:none}.page.active{display:block}
@@ -42,7 +42,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .comment-input-row button{padding:6px 10px;background:#667eea;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer}
 .form-group{margin:10px 0}
 .form-group label{font-size:13px;color:#555;display:block;margin-bottom:4px;font-weight:bold}
-.form-group input,.form-group textarea{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
 .form-group input:focus,.form-group textarea:focus{border-color:#667eea}
 .nutrients-row{display:flex;gap:8px}
 .nutrients-row .form-group{flex:1}
@@ -51,7 +51,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .btn-secondary{background:#f0f0f0;color:#555}
 .btn-ai{background:linear-gradient(135deg,#11998e,#38ef7d);color:white}
 .btn-photo{background:linear-gradient(135deg,#f7971e,#ffd200);color:#333}
-.btn-camera{background:linear-gradient(135deg,#e74c3c,#c0392b);color:white}
+.btn-danger{background:#e74c3c;color:white}
 .btn:active{opacity:0.8}
 .meal-type-buttons{display:flex;gap:8px;margin:8px 0}
 .meal-type-btn{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;background:white;font-size:12px;cursor:pointer;text-align:center;transition:all 0.2s}
@@ -63,6 +63,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .progress-bar{background:#eee;border-radius:10px;height:10px;margin:8px 0;overflow:hidden}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#667eea,#764ba2);transition:width 0.5s}
 .progress-fill.over{background:linear-gradient(90deg,#e74c3c,#c0392b)}
+.progress-fill.green{background:linear-gradient(90deg,#27ae60,#2ecc71)}
 .nutrient-cards{display:flex;gap:8px;margin-top:12px}
 .nutrient-card{flex:1;background:#f8f9ff;border-radius:10px;padding:10px;text-align:center}
 .nutrient-card .value{font-size:20px;font-weight:bold;color:#667eea}
@@ -85,6 +86,21 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .photo-preview-item{position:relative;width:80px;height:80px}
 .photo-preview-item img{width:80px;height:80px;object-fit:cover;border-radius:8px}
 .photo-preview-item button{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;text-align:center}
+/* 減量トラッカー */
+.deficit-card{border-radius:12px;padding:16px;margin:8px 0;text-align:center}
+.deficit-plus{background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white}
+.deficit-minus{background:linear-gradient(135deg,#26de81,#20bf6b);color:white}
+.deficit-zero{background:#f0f0f0;color:#666}
+.deficit-number{font-size:36px;font-weight:bold}
+.deficit-label{font-size:13px;opacity:0.9;margin-top:4px}
+.steps-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+.steps-row input{flex:1;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px}
+.steps-row button{padding:10px 16px;background:#667eea;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:bold;white-space:nowrap}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.stat-item{background:#f8f9ff;border-radius:10px;padding:10px;text-align:center}
+.stat-value{font-size:18px;font-weight:bold;color:#667eea}
+.stat-label{font-size:11px;color:#888;margin-top:2px}
+/* 認証 */
 #auth-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:100;display:flex;align-items:center;justify-content:center}
 .auth-card{background:white;border-radius:16px;padding:32px 24px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
 .auth-card h2{text-align:center;font-size:20px;color:#333;margin-bottom:4px}
@@ -135,10 +151,13 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 <div class="tabs">
   <div class="tab active" id="tab-home" onclick="showPage('home',this)">🏠 ホーム</div>
   <div class="tab" id="tab-add" onclick="showPage('add',this)">➕ 追加</div>
+  <div class="tab" id="tab-weight" onclick="showPage('weight',this)">⚖️ 減量</div>
   <div class="tab" id="tab-history" onclick="showPage('history',this)">📅 履歴</div>
   <div class="tab" id="tab-friends" onclick="showPage('friends',this)">👥 友達<span class="badge" id="pending-badge" style="display:none"></span></div>
 </div>
 <div class="content">
+
+  <!-- ホーム -->
   <div class="page active" id="page-home">
     <div class="date-nav">
       <button onclick="changeDate(-1)">◀</button>
@@ -171,6 +190,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
     </div>
   </div>
 
+  <!-- 追加 -->
   <div class="page" id="page-add">
     <div class="card">
       <h2>✏️ 食事を記録</h2>
@@ -195,7 +215,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
           </label>
           <label style="flex:1;padding:10px;background:#fff0f0;border:2px dashed #e74c3c;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;color:#e74c3c">
             📸 カメラ撮影
-            <input type="file" id="camera-input" accept="image/*" capture="environment" multiple onchange="onPhotosSelected(event)" style="display:none">
+            <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="onPhotosSelected(event)" style="display:none">
           </label>
         </div>
         <div class="photo-preview-container" id="photo-previews"></div>
@@ -212,6 +232,39 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
     </div>
   </div>
 
+  <!-- 減量トラッカー -->
+  <div class="page" id="page-weight">
+    <div class="card">
+      <h2>⚖️ 減量目標設定</h2>
+      <div class="nutrients-row">
+        <div class="form-group"><label>現在体重(kg)</label><input type="number" id="w-current" placeholder="70"></div>
+        <div class="form-group"><label>目標体重(kg)</label><input type="number" id="w-target" placeholder="65"></div>
+      </div>
+      <div class="nutrients-row">
+        <div class="form-group"><label>身長(cm)</label><input type="number" id="w-height" placeholder="170"></div>
+        <div class="form-group"><label>年齢</label><input type="number" id="w-age" placeholder="30"></div>
+      </div>
+      <div class="form-group">
+        <label>性別</label>
+        <select id="w-gender">
+          <option value="male">男性</option>
+          <option value="female">女性</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="saveWeightGoal()">💾 目標を設定する</button>
+    </div>
+    <div class="card" id="weight-stats" style="display:none">
+      <h2>📊 今日の収支</h2>
+      <div class="steps-row">
+        <input type="number" id="steps-input" placeholder="今日の歩数を入力">
+        <button onclick="saveSteps()">歩数を記録</button>
+      </div>
+      <div id="deficit-display"></div>
+      <div class="stats-grid" id="weight-stats-grid"></div>
+    </div>
+  </div>
+
+  <!-- 履歴 -->
   <div class="page" id="page-history">
     <div class="card">
       <h2>📅 記録履歴</h2>
@@ -219,6 +272,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
     </div>
   </div>
 
+  <!-- 友達 -->
   <div class="page" id="page-friends">
     <div class="card">
       <h2>🔍 友達を検索・追加</h2>
@@ -253,13 +307,23 @@ let allMeals=[];
 let currentUser=null;
 let friendsList=[];
 let selectedPhotos=[];
+let weightGoal=null;
 let calorieGoal=parseInt(localStorage.getItem('calorie_goal'))||2000;
-const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️ 昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
+const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️  昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
 function formatDateJP(dateStr){
   const parts=dateStr.split('-');
   const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
   return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
+}
+
+function calcBMR(goal){
+  if(!goal) return 0;
+  if(goal.gender==='male'){
+    return 66.5+13.75*goal.current_weight+5.003*goal.height-6.755*goal.age;
+  }else{
+    return 655.1+9.563*goal.current_weight+1.850*goal.height-4.676*goal.age;
+  }
 }
 
 function updateGoal(){
@@ -315,6 +379,7 @@ function loginSuccess(user){
   document.getElementById('display-date').textContent=formatDateJP(currentDate);
   loadMeals();
   loadFriends();
+  loadWeightGoal();
 }
 
 async function loadMeals(){
@@ -365,26 +430,21 @@ function renderHome(){
 
 async function toggleComments(meal_id){
   const div=document.getElementById('comments-'+meal_id);
-  if(div.style.display==='none'){
-    div.style.display='block';
-    await loadComments(meal_id);
-  }else{
-    div.style.display='none';
-  }
+  if(div.style.display==='none'){div.style.display='block';await loadComments(meal_id);}
+  else{div.style.display='none';}
 }
 
 async function loadComments(meal_id){
   const div=document.getElementById('comments-'+meal_id);
   const res=await fetch('/api/comments/'+meal_id);
   const comments=await res.json();
-  const html=`<div class="comment-area">
+  div.innerHTML=`<div class="comment-area">
     ${comments.length>0?comments.map(c=>`<div class="comment-item"><span class="comment-author">${c.display_name}</span>: ${c.content}</div>`).join(''):'<div style="font-size:12px;color:#aaa">まだコメントがありません</div>'}
     <div class="comment-input-row">
       <input type="text" id="comment-input-${meal_id}" placeholder="コメントを入力...">
       <button onclick="postComment('${meal_id}')">送信</button>
     </div>
   </div>`;
-  div.innerHTML=html;
 }
 
 async function postComment(meal_id){
@@ -394,6 +454,97 @@ async function postComment(meal_id){
   await fetch('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({meal_id,user_id:currentUser.id,content})});
   await loadComments(meal_id);
+}
+
+// 減量トラッカー
+async function loadWeightGoal(){
+  if(!currentUser) return;
+  const res=await fetch('/api/weight-goal?user_id='+currentUser.id);
+  weightGoal=await res.json();
+  if(weightGoal){
+    document.getElementById('w-current').value=weightGoal.current_weight;
+    document.getElementById('w-target').value=weightGoal.target_weight;
+    document.getElementById('w-height').value=weightGoal.height;
+    document.getElementById('w-age').value=weightGoal.age;
+    document.getElementById('w-gender').value=weightGoal.gender;
+    document.getElementById('weight-stats').style.display='block';
+    await renderWeightStats();
+  }
+}
+
+async function saveWeightGoal(){
+  const current_weight=parseFloat(document.getElementById('w-current').value);
+  const target_weight=parseFloat(document.getElementById('w-target').value);
+  const height=parseFloat(document.getElementById('w-height').value);
+  const age=parseInt(document.getElementById('w-age').value);
+  const gender=document.getElementById('w-gender').value;
+  if(!current_weight||!target_weight||!height||!age){alert('すべて入力してください');return;}
+  if(target_weight>=current_weight){alert('目標体重は現在体重より小さくしてください');return;}
+  await fetch('/api/weight-goal',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:currentUser.id,current_weight,target_weight,height,age,gender})});
+  await loadWeightGoal();
+  alert('目標を設定しました！');
+}
+
+async function saveSteps(){
+  const steps=parseInt(document.getElementById('steps-input').value)||0;
+  await fetch('/api/steps',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:currentUser.id,date:currentDate,steps})});
+  await renderWeightStats();
+  alert('歩数を記録しました！');
+}
+
+async function renderWeightStats(){
+  if(!weightGoal) return;
+  const bmr=calcBMR(weightGoal);
+  const stepsRes=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
+  const stepsData=await stepsRes.json();
+  const steps=stepsData.steps||0;
+  document.getElementById('steps-input').value=steps||'';
+  const stepCal=steps*0.035;
+  const consumed=Math.round(bmr+stepCal);
+  const dayMeals=allMeals.filter(m=>m.date===currentDate);
+  const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
+  const todayDeficit=consumed-intake;
+  const totalDeficit=(weightGoal.current_weight-weightGoal.target_weight)*7200;
+  // 累計計算（全日付）
+  const dateMap={};
+  allMeals.forEach(m=>{
+    if(!dateMap[m.date]) dateMap[m.date]=0;
+    dateMap[m.date]+=(m.total_calories||0);
+  });
+  // 累計は今日以外の日の収支（今日は現在値で表示）
+  let cumulativeDeficit=todayDeficit;
+  const progressPct=Math.min(Math.max((cumulativeDeficit/totalDeficit)*100,0),100);
+  const daysToGoal=todayDeficit>0?Math.ceil((totalDeficit-cumulativeDeficit)/todayDeficit):null;
+  // 今日の収支表示
+  const deficitDiv=document.getElementById('deficit-display');
+  if(todayDeficit>0){
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-minus">
+      <div class="deficit-number">-${Math.abs(todayDeficit).toLocaleString()} kcal</div>
+      <div class="deficit-label">今日はカロリー赤字！減量に効果的 🎉</div>
+    </div>`;
+  }else if(todayDeficit<0){
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-plus">
+      <div class="deficit-number">+${Math.abs(todayDeficit).toLocaleString()} kcal</div>
+      <div class="deficit-label">今日はカロリー黒字。明日頑張ろう！</div>
+    </div>`;
+  }else{
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-zero">
+      <div class="deficit-number">0 kcal</div>
+      <div class="deficit-label">収支ゼロ</div>
+    </div>`;
+  }
+  document.getElementById('weight-stats-grid').innerHTML=`
+    <div class="stat-item"><div class="stat-value">${Math.round(bmr)}</div><div class="stat-label">基礎代謝 kcal</div></div>
+    <div class="stat-item"><div class="stat-value">${Math.round(stepCal)}</div><div class="stat-label">歩行消費 kcal</div></div>
+    <div class="stat-item"><div class="stat-value">${consumed}</div><div class="stat-label">総消費 kcal</div></div>
+    <div class="stat-item"><div class="stat-value">${intake}</div><div class="stat-label">摂取 kcal</div></div>
+    <div class="stat-item" style="grid-column:span 2">
+      <div style="font-size:13px;color:#555;margin-bottom:6px">目標達成まで</div>
+      <div class="progress-bar"><div class="progress-fill green" style="width:${progressPct}%"></div></div>
+      <div style="font-size:12px;color:#888;margin-top:4px">${Math.round(progressPct)}% 達成</div>
+    </div>`;
 }
 
 function renderHistory(){
@@ -517,7 +668,7 @@ async function analyzePhotos(){
   const resultDiv=document.getElementById('ai-calc-result');
   const photos=selectedPhotos.filter(p=>p!==null);
   if(photos.length===0){alert('写真を選んでください');return;}
-  resultDiv.innerHTML="<div class='ai-loading'>📷 AIが"+photos.length+"枚の写真を分析中...</div>";
+  resultDiv.innerHTML=`<div class='ai-loading'>📷 AIが${photos.length}枚の写真を分析中...</div>`;
   try{
     const text=await callAI(
       'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。複数枚の場合はすべての料理を合算してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
@@ -560,7 +711,10 @@ function renderFriends(){
   document.getElementById('pending-list').innerHTML=pendingHTML||"<div class='empty'>なし</div>";
   const friendsHTML=accepted.map(f=>`<div class="friend-item">
     <div><div class="friend-name">${f.display_name}</div><div class="friend-email">${f.email}</div></div>
-    <button class="friend-btn btn-view" onclick="viewFriendMeals('${f.friend_id}','${f.display_name}')">食事を見る</button>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <button class="friend-btn btn-view" onclick="viewFriendMeals('${f.friend_id}','${f.display_name}')">食事を見る</button>
+      <button class="friend-btn" style="background:#27ae60;color:white" onclick="viewFriendProgress('${f.friend_id}','${f.display_name}')">進捗を見る</button>
+    </div>
   </div>`).join('');
   document.getElementById('friends-list').innerHTML=friendsHTML||"<div class='empty'>まだ友達がいません</div>";
 }
@@ -620,14 +774,28 @@ async function viewFriendMeals(friend_id,display_name){
   document.getElementById('friend-meals-card').style.display='block';
 }
 
+async function viewFriendProgress(friend_id,display_name){
+  const res=await fetch(`/api/friend-progress?user_id=${currentUser.id}&friend_id=${friend_id}`);
+  const data=await res.json();
+  if(data.no_goal){alert(display_name+'さんはまだ減量目標を設定していません');return;}
+  if(!res.ok){alert('データの取得に失敗しました');return;}
+  const pct=data.progress_pct||0;
+  document.getElementById('friend-meals-title').textContent=display_name+'さんの減量進捗';
+  document.getElementById('friend-meals-list').innerHTML=`
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:36px;font-weight:bold;color:#667eea">${pct}%</div>
+      <div style="font-size:13px;color:#888;margin-top:4px">目標達成率</div>
+      <div class="progress-bar" style="margin-top:12px"><div class="progress-fill green" style="width:${pct}%"></div></div>
+      <div style="font-size:13px;color:#555;margin-top:12px">累計カロリー赤字: ${data.cumulative_deficit.toLocaleString()} kcal</div>
+      <div style="font-size:13px;color:#aaa;margin-top:4px">目標合計: ${data.total_deficit.toLocaleString()} kcal</div>
+    </div>`;
+  document.getElementById('friend-meals-card').style.display='block';
+}
+
 async function toggleFriendComments(meal_id,div_id){
   const div=document.getElementById(div_id);
-  if(div.style.display==='none'){
-    div.style.display='block';
-    await loadFriendComments(meal_id,div_id);
-  }else{
-    div.style.display='none';
-  }
+  if(div.style.display==='none'){div.style.display='block';await loadFriendComments(meal_id,div_id);}
+  else{div.style.display='none';}
 }
 
 async function loadFriendComments(meal_id,div_id){
@@ -668,6 +836,7 @@ function showPage(name,el){
   el.classList.add('active');
   if(name==='history') renderHistory();
   if(name==='friends') loadFriends();
+  if(name==='weight') renderWeightStats();
 }
 
 function selectMealType(type){

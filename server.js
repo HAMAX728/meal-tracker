@@ -104,7 +104,6 @@ app.get('/api/friend-meals',async(req,res)=>{
   res.json(data||[]);
 });
 
-// コメント取得
 app.get('/api/comments/:meal_id',async(req,res)=>{
   const{meal_id}=req.params;
   const{data,error}=await supabase.from('comments').select('*').eq('meal_id',meal_id).order('created_at',{ascending:true});
@@ -116,7 +115,6 @@ app.get('/api/comments/:meal_id',async(req,res)=>{
   res.json(result);
 });
 
-// コメント投稿
 app.post('/api/comments',async(req,res)=>{
   const{meal_id,user_id,content}=req.body;
   if(!meal_id||!user_id||!content) return res.status(400).json({error:'必須項目不足'});
@@ -125,15 +123,98 @@ app.post('/api/comments',async(req,res)=>{
   res.json({success:true});
 });
 
+// 体重・目標設定
+app.post('/api/weight-goal',async(req,res)=>{
+  const{user_id,current_weight,target_weight,height,age,gender}=req.body;
+  if(!user_id) return res.status(400).json({error:'user_id required'});
+  const{data:existing}=await supabase.from('weight_goals').select('id').eq('user_id',user_id).single();
+  if(existing){
+    const{error}=await supabase.from('weight_goals').update({current_weight,target_weight,height,age,gender,updated_at:new Date().toISOString()}).eq('user_id',user_id);
+    if(error) return res.status(500).json({error:error.message});
+  }else{
+    const{error}=await supabase.from('weight_goals').insert({user_id,current_weight,target_weight,height,age,gender});
+    if(error) return res.status(500).json({error:error.message});
+  }
+  res.json({success:true});
+});
+
+app.get('/api/weight-goal',async(req,res)=>{
+  const{user_id}=req.query;
+  const{data,error}=await supabase.from('weight_goals').select('*').eq('user_id',user_id).single();
+  if(error) return res.json(null);
+  res.json(data);
+});
+
+// 歩数記録
+app.post('/api/steps',async(req,res)=>{
+  const{user_id,date,steps}=req.body;
+  const{data:existing}=await supabase.from('daily_steps').select('id').eq('user_id',user_id).eq('date',date).single();
+  if(existing){
+    const{error}=await supabase.from('daily_steps').update({steps}).eq('user_id',user_id).eq('date',date);
+    if(error) return res.status(500).json({error:error.message});
+  }else{
+    const{error}=await supabase.from('daily_steps').insert({user_id,date,steps});
+    if(error) return res.status(500).json({error:error.message});
+  }
+  res.json({success:true});
+});
+
+app.get('/api/steps',async(req,res)=>{
+  const{user_id,date}=req.query;
+  const{data,error}=await supabase.from('daily_steps').select('*').eq('user_id',user_id).eq('date',date).single();
+  if(error) return res.json({steps:0});
+  res.json(data);
+});
+
+// 友達の減量進捗（体重は非公開、収支のみ）
+app.get('/api/friend-progress',async(req,res)=>{
+  const{user_id,friend_id}=req.query;
+  const{data:friendship}=await supabase.from('friendships').select('*')
+    .or(`and(requester_id.eq.${user_id},receiver_id.eq.${friend_id}),and(requester_id.eq.${friend_id},receiver_id.eq.${user_id})`)
+    .eq('status','accepted').single();
+  if(!friendship) return res.status(403).json({error:'友達ではありません'});
+  const{data:goal}=await supabase.from('weight_goals').select('current_weight,target_weight,height,age,gender').eq('user_id',friend_id).single();
+  if(!goal) return res.json({no_goal:true});
+  // 基礎代謝計算
+  let bmr;
+  if(goal.gender==='male'){
+    bmr=66.5+13.75*goal.current_weight+5.003*goal.height-6.755*goal.age;
+  }else{
+    bmr=655.1+9.563*goal.current_weight+1.850*goal.height-4.676*goal.age;
+  }
+  // 必要カロリー赤字（1kg=7200kcal）
+  const totalDeficit=(goal.current_weight-goal.target_weight)*7200;
+  // 全食事記録取得
+  const{data:meals}=await supabase.from('meals').select('date,total_calories').eq('user_id',friend_id);
+  // 全歩数取得
+  const{data:steps}=await supabase.from('daily_steps').select('date,steps').eq('user_id',friend_id);
+  // 日別収支計算
+  const dateMap={};
+  (meals||[]).forEach(m=>{
+    if(!dateMap[m.date]) dateMap[m.date]={intake:0,steps:0};
+    dateMap[m.date].intake+=(m.total_calories||0);
+  });
+  (steps||[]).forEach(s=>{
+    if(!dateMap[s.date]) dateMap[s.date]={intake:0,steps:0};
+    dateMap[s.date].steps=s.steps||0;
+  });
+  let cumulativeDeficit=0;
+  Object.values(dateMap).forEach(d=>{
+    const stepCal=d.steps*0.035;
+    const consumed=bmr+stepCal;
+    cumulativeDeficit+=consumed-d.intake;
+  });
+  const progressPct=Math.min((cumulativeDeficit/totalDeficit)*100,100);
+  res.json({cumulative_deficit:Math.round(cumulativeDeficit),total_deficit:Math.round(totalDeficit),progress_pct:Math.max(0,Math.round(progressPct))});
+});
+
 app.post('/api/ai',async(req,res)=>{
   const{system,user,images}=req.body;
   const apiKey=process.env.ANTHROPIC_API_KEY;
   if(!apiKey) return res.status(500).json({error:'APIキーが設定されていません'});
   const content=[];
   if(images&&images.length>0){
-    images.forEach(b64=>{
-      content.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}});
-    });
+    images.forEach(b64=>{content.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}});});
   }
   content.push({type:'text',text:user});
   const messages=[{role:'user',content}];

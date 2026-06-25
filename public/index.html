@@ -636,16 +636,15 @@ async function renderWeightStats(){
 async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
-  ;const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
+  const dates=Object.keys(grouped).sort().reverse();
+  const datesAsc=Object.keys(grouped).sort();
+  const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
   // 歩数データ取得
   let stepsMap={};
   if(weightGoal&&currentUser){
     const res=await fetch('/api/steps-all?user_id='+currentUser.id);
     if(res.ok) stepsMap=await res.json();
   }
-  const allDates=new Set([...Object.keys(grouped),...Object.keys(stepsMap)]);
-  const dates=[...allDates].sort().reverse();
-  const datesAsc=[...allDates].sort();
   let cumulative=0;
   datesAsc.forEach(date=>{
     const items=grouped[date];
@@ -668,7 +667,7 @@ async function renderHistory(){
   });
   const totalNeeded=weightGoal?(weightGoal.current_weight-weightGoal.target_weight)*7200:0;
   const rows=dates.map(date=>{
-    const items=grouped[date]||[];
+    const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
     const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
     const totalF=items.reduce((s,m)=>s+(m.fat||0),0);

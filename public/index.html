@@ -636,16 +636,16 @@ async function renderWeightStats(){
 async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
-  const allDates=new Set([...Object.keys(grouped),...Object.keys(stepsMap)]);
-  const dates=[...allDates].sort().reverse();
-  const datesAsc=[...allDates].sort();
-  const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
+  ;const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
   // 歩数データ取得
   let stepsMap={};
   if(weightGoal&&currentUser){
     const res=await fetch('/api/steps-all?user_id='+currentUser.id);
     if(res.ok) stepsMap=await res.json();
   }
+  const allDates=new Set([...Object.keys(grouped),...Object.keys(stepsMap)]);
+  const dates=[...allDates].sort().reverse();
+  const datesAsc=[...allDates].sort();
   let cumulative=0;
   datesAsc.forEach(date=>{
     const items=grouped[date];

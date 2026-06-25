@@ -580,10 +580,17 @@ async function renderHistory(){
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
       <div style="font-size:12px;color:#999;margin-top:2px">P:${Math.round(totalP*10)/10}g F:${Math.round(totalF*10)/10}g C:${Math.round(totalC*10)/10}g</div>
-      ${bmr>0?`<div style="font-size:12px;margin-top:4px;display:flex;gap:12px">
-        <span style="color:#555">消費: ${consumed}kcal</span>
-        <span style="color:${deficitColor};font-weight:bold">${deficitSign}${Math.abs(deficit)}kcal</span>
-        <span style="color:#888">累計: ${cumulative>0?'-':'+'}${Math.abs(Math.round(cumulative))}kcal (${weightLost}kg)</span>
+      ${bmr>0?`<div style="margin-top:8px;display:flex;gap:8px">
+        <div style="flex:1;background:${deficit>0?'#e8f8f0':'#fef0f0'};border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:11px;color:#888">今日の収支</div>
+          <div style="font-size:18px;font-weight:bold;color:${deficit>0?'#27ae60':'#e74c3c'}">${deficit>0?'−':'+'}${Math.abs(deficit).toLocaleString()}<span style="font-size:11px">kcal</span></div>
+          <div style="font-size:11px;color:#888">消費${consumed} / 摂取${total}</div>
+        </div>
+        <div style="flex:1;background:#f0f4ff;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:11px;color:#888">累計赤字</div>
+          <div style="font-size:18px;font-weight:bold;color:#667eea">${cumulative>0?'−':'+'}${Math.abs(Math.round(cumulative)).toLocaleString()}<span style="font-size:11px">kcal</span></div>
+          <div style="font-size:11px;color:#888">約${weightLost}kg分</div>
+        </div>
       </div>`:''}
       ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data}</div>`).join('')}
     </div>`;

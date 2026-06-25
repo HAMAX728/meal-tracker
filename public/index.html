@@ -173,15 +173,18 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       </div>
       <div class="progress-bar"><div class="progress-fill" id="calorie-progress" style="width:0%"></div></div>
       <p id="calorie-status" style="text-align:center;font-size:13px;color:#888;margin-top:6px"></p>
-      <div class="goal-setting">
-        <span style="font-size:13px;color:#555">目標変更:</span>
-        <input type="number" id="goal-input" placeholder="2000">
-        <button onclick="updateGoal()">設定</button>
-      </div>
+      
       <div class="nutrient-cards">
         <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
         <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
         <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>👟 今日の歩数</h2>
+      <div class="steps-row">
+        <input type="number" id="steps-input-home" placeholder="今日の歩数を入力">
+        <button onclick="saveStepsHome()">記録</button>
       </div>
     </div>
     <div class="card">
@@ -486,6 +489,12 @@ async function saveWeightGoal(){
   alert('目標を設定しました！');
 }
 
+async function saveStepsHome(){
+  const steps=parseInt(document.getElementById('steps-input-home').value)||0;
+  await fetch('/api/steps',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:currentUser.id,date:currentDate,steps})});
+  alert('歩数を記録しました！');
+}
 async function saveSteps(){
   const steps=parseInt(document.getElementById('steps-input').value)||0;
   await fetch('/api/steps',{method:'POST',headers:{'Content-Type':'application/json'},

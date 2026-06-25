@@ -687,7 +687,6 @@ async function renderHistory(){
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
       <div style="font-size:12px;color:#999;margin-top:2px">P:${Math.round(totalP*10)/10}g F:${Math.round(totalF*10)/10}g C:${Math.round(totalC*10)/10}g</div>
-      <div style="font-size:12px;color:#888;margin-top:2px">👟 ${(stepsMap[date]||0).toLocaleString()}歩 | 歩行消費: ${stepCal}kcal</div>
       ${bmr>0?`<div style="margin-top:8px;display:flex;gap:8px">
         <div style="flex:1;background:${deficit>0?'#e8f8f0':'#fef0f0'};border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:11px;color:#888">今日の収支</div>

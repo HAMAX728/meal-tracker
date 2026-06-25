@@ -552,6 +552,7 @@ async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
   const dates=Object.keys(grouped).sort().reverse();
+  const datesAsc=Object.keys(grouped).sort();
   const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
   // 歩数データ取得
   let stepsMap={};
@@ -560,6 +561,15 @@ async function renderHistory(){
     if(res.ok) stepsMap=await res.json();
   }
   let cumulative=0;
+  datesAsc.forEach(date=>{
+    const items=grouped[date];
+    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
+    const steps=stepsMap[date]||0;
+    const stepCal=Math.round(steps*0.035);
+    const consumed=bmr+stepCal;
+    cumulative+=consumed-total;
+  });
+  cumulative=0;
   const rows=dates.map(date=>{
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);

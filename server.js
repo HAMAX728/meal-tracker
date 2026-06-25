@@ -159,6 +159,15 @@ app.post('/api/steps',async(req,res)=>{
   res.json({success:true});
 });
 
+app.get('/api/steps-all',async(req,res)=>{
+  const{user_id}=req.query;
+  const{data,error}=await supabase.from('daily_steps').select('date,steps').eq('user_id',user_id);
+  if(error) return res.status(500).json({error:error.message});
+  const map={};
+  (data||[]).forEach(d=>{map[d.date]=d.steps;});
+  res.json(map);
+});
+
 app.get('/api/steps',async(req,res)=>{
   const{user_id,date}=req.query;
   const{data,error}=await supabase.from('daily_steps').select('*').eq('user_id',user_id).eq('date',date).single();

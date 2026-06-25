@@ -548,25 +548,47 @@ async function renderWeightStats(){
     </div>`;
 }
 
-function renderHistory(){
+async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
   const dates=Object.keys(grouped).sort().reverse();
-  document.getElementById('history-list').innerHTML=dates.map(date=>{
+  const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
+  // 歩数データ取得
+  let stepsMap={};
+  if(weightGoal&&currentUser){
+    const res=await fetch('/api/steps-all?user_id='+currentUser.id);
+    if(res.ok) stepsMap=await res.json();
+  }
+  let cumulative=0;
+  const rows=dates.map(date=>{
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
     const totalP=items.reduce((s,m)=>s+(m.protein||0),0);
     const totalF=items.reduce((s,m)=>s+(m.fat||0),0);
     const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);
+    const steps=stepsMap[date]||0;
+    const stepCal=Math.round(steps*0.035);
+    const consumed=bmr+stepCal;
+    const deficit=consumed-total;
+    cumulative+=deficit;
+    const deficitColor=deficit>0?'#27ae60':'#e74c3c';
+    const deficitSign=deficit>0?'-':'+';
+    const weightLost=(cumulative/7200).toFixed(2);
     return `<div style="border-bottom:1px solid #eee;padding:10px 0">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
-      <div style="font-size:12px;color:#999;margin-top:2px">P:${totalP}g F:${totalF}g C:${totalC}g</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">P:${Math.round(totalP*10)/10}g F:${Math.round(totalF*10)/10}g C:${Math.round(totalC*10)/10}g</div>
+      ${bmr>0?`<div style="font-size:12px;margin-top:4px;display:flex;gap:12px">
+        <span style="color:#555">消費: ${consumed}kcal</span>
+        <span style="color:${deficitColor};font-weight:bold">${deficitSign}${Math.abs(deficit)}kcal</span>
+        <span style="color:#888">累計: ${cumulative>0?'-':'+'}${Math.abs(Math.round(cumulative))}kcal (${weightLost}kg)</span>
+      </div>`:''}
       ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">${mealTypeLabels[m.meal_type]||''} ${m.meals_data}</div>`).join('')}
     </div>`;
-  }).join('')||"<div class='empty'>履歴がありません</div>";
+  });
+  document.getElementById('history-list').innerHTML=rows.join('')||"<div class='empty'>履歴がありません</div>";
 }
 
 async function saveMeal(){

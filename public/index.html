@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh}
-.header{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:20px;text-align:center}
+.header{background:#f48fb1;color:white;padding:20px;text-align:center;position:relative;overflow:hidden}
 .header h1{font-size:24px;margin-bottom:4px}
 .header p{font-size:13px;opacity:0.8}
 .tabs{display:flex;background:white;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
@@ -151,7 +151,51 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 </div>
 
 <div class="header">
-  <h1>🍽️ ぽちゃログ</h1>
+  <svg width="100%" viewBox="0 0 680 120" style="position:absolute;top:0;left:0;pointer-events:none">
+    <g transform="translate(60,60)">
+      <ellipse cx="0" cy="10" rx="32" ry="26" fill="#ffb3c6"/>
+      <circle cx="0" cy="-18" r="22" fill="#ffb3c6"/>
+      <ellipse cx="-14" cy="-36" rx="8" ry="10" fill="#ffb3c6" transform="rotate(-15,-14,-36)"/>
+      <ellipse cx="-14" cy="-36" rx="5" ry="7" fill="#ff8fab" transform="rotate(-15,-14,-36)"/>
+      <ellipse cx="14" cy="-36" rx="8" ry="10" fill="#ffb3c6" transform="rotate(15,14,-36)"/>
+      <ellipse cx="14" cy="-36" rx="5" ry="7" fill="#ff8fab" transform="rotate(15,14,-36)"/>
+      <ellipse cx="0" cy="-12" rx="10" ry="8" fill="#ff8fab"/>
+      <circle cx="-4" cy="-12" r="2.5" fill="#e91e8c"/>
+      <circle cx="4" cy="-12" r="2.5" fill="#e91e8c"/>
+      <circle cx="-8" cy="-22" r="4" fill="white"/>
+      <circle cx="8" cy="-22" r="4" fill="white"/>
+      <circle cx="-7" cy="-22" r="2.5" fill="#333"/>
+      <circle cx="9" cy="-22" r="2.5" fill="#333"/>
+      <circle cx="-6" cy="-23" r="1" fill="white"/>
+      <circle cx="10" cy="-23" r="1" fill="white"/>
+      <ellipse cx="-14" cy="-16" rx="6" ry="4" fill="#ff6b9d" opacity="0.5"/>
+      <ellipse cx="14" cy="-16" rx="6" ry="4" fill="#ff6b9d" opacity="0.5"/>
+      <ellipse cx="-28" cy="5" rx="8" ry="6" fill="#ffb3c6"/>
+      <ellipse cx="28" cy="5" rx="8" ry="6" fill="#ffb3c6"/>
+    </g>
+    <g transform="translate(620,60) scale(-1,1)">
+      <ellipse cx="0" cy="10" rx="32" ry="26" fill="#ffb3c6"/>
+      <circle cx="0" cy="-18" r="22" fill="#ffb3c6"/>
+      <ellipse cx="-14" cy="-36" rx="8" ry="10" fill="#ffb3c6" transform="rotate(-15,-14,-36)"/>
+      <ellipse cx="-14" cy="-36" rx="5" ry="7" fill="#ff8fab" transform="rotate(-15,-14,-36)"/>
+      <ellipse cx="14" cy="-36" rx="8" ry="10" fill="#ffb3c6" transform="rotate(15,14,-36)"/>
+      <ellipse cx="14" cy="-36" rx="5" ry="7" fill="#ff8fab" transform="rotate(15,14,-36)"/>
+      <ellipse cx="0" cy="-12" rx="10" ry="8" fill="#ff8fab"/>
+      <circle cx="-4" cy="-12" r="2.5" fill="#e91e8c"/>
+      <circle cx="4" cy="-12" r="2.5" fill="#e91e8c"/>
+      <circle cx="-8" cy="-22" r="4" fill="white"/>
+      <circle cx="8" cy="-22" r="4" fill="white"/>
+      <circle cx="-7" cy="-22" r="2.5" fill="#333"/>
+      <circle cx="9" cy="-22" r="2.5" fill="#333"/>
+      <circle cx="-6" cy="-23" r="1" fill="white"/>
+      <circle cx="10" cy="-23" r="1" fill="white"/>
+      <ellipse cx="-14" cy="-16" rx="6" ry="4" fill="#ff6b9d" opacity="0.5"/>
+      <ellipse cx="14" cy="-16" rx="6" ry="4" fill="#ff6b9d" opacity="0.5"/>
+      <ellipse cx="-28" cy="5" rx="8" ry="6" fill="#ffb3c6"/>
+      <ellipse cx="28" cy="5" rx="8" ry="6" fill="#ffb3c6"/>
+    </g>
+  </svg>
+  <h1>🐷 ぽちゃログ 🐷</h1>
   <p id="header-info"></p>
   <button onclick="doLogout()" style="margin-top:8px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:4px 12px;border-radius:8px;font-size:12px;cursor:pointer">ログアウト</button>
 </div>

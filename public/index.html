@@ -427,6 +427,7 @@ const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️  昼食',dinner:'�
 const RESTAURANT_GENRES=['寿司','焼肉','ラーメン','居酒屋','イタリアン','和食','焼き鳥','天ぷら','しゃぶしゃぶ','カフェ','フレンチ','中華','韓国料理','タイ料理','インド料理','鉄板焼き','うなぎ','そば','うどん','とんかつ','ハンバーガー','ステーキ','スペイン料理','メキシコ料理','ビュッフェ','その他'];
 function genreOptions(selected){return '<option value="">選択してください</option>'+RESTAURANT_GENRES.map(g=>`<option value="${g}"${g===selected?' selected':''}>${g}</option>`).join('');}
 function escAttr(str){return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function normalizeUrl(url){const u=String(url).trim();return /^https?:\/\//i.test(u)?u:'https://'+u;}
 
 function formatDateJP(dateStr){
   const parts=dateStr.split('-');
@@ -776,7 +777,7 @@ function renderRestaurants(){
           <div class="restaurant-name">${r.name}</div>
           <div class="restaurant-meta">${r.genre||''}${r.genre&&r.area?' / ':''}${r.area||''}</div>
           ${r.memo?`<div style="font-size:12px;color:#666;margin-top:4px">${r.memo}</div>`:''}
-          ${r.url?`<div style="margin-top:4px"><a href="${r.url}" target="_blank" style="font-size:12px;color:#667eea">🔗 リンクを開く</a></div>`:''}
+          ${r.url?`<div style="margin-top:4px"><a href="${escAttr(normalizeUrl(r.url))}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#667eea">🔗 リンクを開く</a></div>`:''}
         </div>
         <span style="font-size:12px;background:${r.status==='visited'?'#e8f8f0':'#f0f0ff'};color:${r.status==='visited'?'#27ae60':'#667eea'};padding:4px 8px;border-radius:8px;white-space:nowrap">${r.status==='visited'?'✅ 行った':'🌟 行きたい'}</span>
       </div>
@@ -1107,7 +1108,7 @@ async function viewFriendRestaurants(friend_id,display_name){
       <div class="restaurant-name">${r.name}</div>
       <div class="restaurant-meta">${r.genre||''}${r.genre&&r.area?' / ':''}${r.area||''}</div>
       ${r.memo?`<div style="font-size:12px;color:#666;margin-top:2px">${r.memo}</div>`:''}
-      ${r.url?`<a href="${r.url}" target="_blank" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
+      ${r.url?`<a href="${escAttr(normalizeUrl(r.url))}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
     </div>`).join('');
   }
   if(visitedList.length>0){
@@ -1116,7 +1117,7 @@ async function viewFriendRestaurants(friend_id,display_name){
       <div class="restaurant-name">${r.name}</div>
       <div class="restaurant-meta">${r.genre||''}${r.genre&&r.area?' / ':''}${r.area||''}</div>
       ${r.memo?`<div style="font-size:12px;color:#666;margin-top:2px">${r.memo}</div>`:''}
-      ${r.url?`<a href="${r.url}" target="_blank" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
+      ${r.url?`<a href="${escAttr(normalizeUrl(r.url))}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
     </div>`).join('');
   }
   document.getElementById('friend-meals-title').textContent=display_name+'さんのお店リスト';

@@ -794,7 +794,8 @@ async function saveRestaurant(){
   if(!name){alert('お店の名前を入力してください');return;}
   const genre=document.getElementById('r-genre').value.trim();
   const area=document.getElementById('r-area').value.trim();
-  const url=document.getElementById('r-url').value.trim();
+  let url=document.getElementById('r-url').value.trim();
+  if(url) url=normalizeUrl(url);
   const memo=document.getElementById('r-memo').value.trim();
   await fetch('/api/restaurants',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({user_id:currentUser.id,name,genre,area,url,memo,status:selectedRestaurantStatus})});
@@ -853,7 +854,8 @@ async function saveEditRestaurant(id){
   if(!name){alert('お店の名前を入力してください');return;}
   const genre=document.getElementById('edit-genre-'+id).value;
   const area=document.getElementById('edit-area-'+id).value.trim();
-  const url=document.getElementById('edit-url-'+id).value.trim();
+  let url=document.getElementById('edit-url-'+id).value.trim();
+  if(url) url=normalizeUrl(url);
   const memo=document.getElementById('edit-memo-'+id).value.trim();
   const status=document.getElementById('edit-rs-visited-'+id).classList.contains('selected')?'visited':'want';
   await fetch('/api/restaurants/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},

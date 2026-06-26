@@ -169,10 +169,10 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div class="calorie-ring">
         <div class="calorie-number" id="today-calories">0</div>
         <div class="calorie-label">kcal 摂取</div>
-        
+        <div class="calorie-goal">目標: <span id="goal-display">2000</span> kcal</div>
       </div>
-      
-      
+      <div class="progress-bar"><div class="progress-fill" id="calorie-progress" style="width:0%"></div></div>
+      <p id="calorie-status" style="text-align:center;font-size:13px;color:#888;margin-top:6px"></p>
       
       <div class="nutrient-cards">
         <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
@@ -465,12 +465,12 @@ function renderHome(){
   document.getElementById('today-protein').textContent=Math.round(totalProtein*10)/10;
   document.getElementById('today-fat').textContent=Math.round(totalFat*10)/10;
   document.getElementById('today-carbs').textContent=Math.round(totalCarbs*10)/10;
-  
-  
-  
-  
-  
-  
+  const pct=Math.min((totalCal/calorieGoal)*100,100);
+  const bar=document.getElementById('calorie-progress');
+  bar.style.width=pct+'%';
+  bar.className='progress-fill'+(totalCal>calorieGoal?' over':'');
+  const remain=calorieGoal-totalCal;
+  document.getElementById('calorie-status').textContent=remain>0?'あと '+remain+' kcal':'目標を '+Math.abs(remain)+' kcal オーバー';
   const html=['breakfast','lunch','dinner','snack'].map(type=>{
     const items=dayMeals.filter(m=>m.meal_type===type);
     if(!items.length) return '';

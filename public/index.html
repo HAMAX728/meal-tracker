@@ -20,7 +20,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .calorie-ring{text-align:center;padding:20px 0}
 .calorie-number{font-size:48px;font-weight:bold;color:#667eea}
 .calorie-label{font-size:13px;color:#888;margin-top:4px}
-.calorie-goal{font-size:13px;color:#aaa;margin-top:8px}
 .meal-section{border-left:4px solid #667eea;padding-left:12px;margin:10px 0;position:relative}
 .meal-section.breakfast{border-color:#f39c12}
 .meal-section.lunch{border-color:#27ae60}
@@ -72,9 +71,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .nutrient-card.protein .value{color:#e74c3c}
 .nutrient-card.fat .value{color:#f39c12}
 .nutrient-card.carbs .value{color:#27ae60}
-.goal-setting{display:flex;align-items:center;gap:8px;margin-top:8px}
-.goal-setting input{width:100px;padding:6px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;text-align:center}
-.goal-setting button{padding:6px 14px;border:none;border-radius:8px;background:#667eea;color:white;font-size:13px;cursor:pointer;font-weight:bold}
 .ai-loading{text-align:center;padding:16px;color:#667eea;font-size:14px}
 .ai-bubble{background:#f0f4ff;border-radius:10px;padding:12px;font-size:13px;color:#333;margin-top:8px}
 .nutrition-breakdown{margin-top:8px}
@@ -86,7 +82,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .photo-preview-item{position:relative;width:80px;height:80px}
 .photo-preview-item img{width:80px;height:80px;object-fit:cover;border-radius:8px}
 .photo-preview-item button{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;text-align:center}
-/* 減量トラッカー */
 .deficit-card{border-radius:12px;padding:16px;margin:8px 0;text-align:center}
 .deficit-plus{background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white}
 .deficit-minus{background:linear-gradient(135deg,#26de81,#20bf6b);color:white}
@@ -100,7 +95,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .stat-item{background:#f8f9ff;border-radius:10px;padding:10px;text-align:center}
 .stat-value{font-size:18px;font-weight:bold;color:#667eea}
 .stat-label{font-size:11px;color:#888;margin-top:2px}
-/* 認証 */
 #auth-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:100;display:flex;align-items:center;justify-content:center}
 .auth-card{background:white;border-radius:16px;padding:32px 24px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
 .auth-card h2{text-align:center;font-size:20px;color:#333;margin-bottom:4px}
@@ -169,11 +163,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div class="calorie-ring">
         <div class="calorie-number" id="today-calories">0</div>
         <div class="calorie-label">kcal 摂取</div>
-        
       </div>
-      
-      
-      
       <div class="nutrient-cards">
         <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
         <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
@@ -274,7 +264,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
     </div>
     <div class="card" id="weight-stats" style="display:none">
       <h2>📊 今日の収支</h2>
-      
       <div id="deficit-display"></div>
       <div class="stats-grid" id="weight-stats-grid"></div>
     </div>
@@ -324,7 +313,7 @@ let currentUser=null;
 let friendsList=[];
 let selectedPhotos=[];
 let weightGoal=null;
-let calorieGoal=parseInt(localStorage.getItem('calorie_goal'))||2000;
+let calorieGoal=2000;
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️  昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
 
 function formatDateJP(dateStr){
@@ -340,17 +329,6 @@ function calcBMR(goal){
   }else{
     return 655.1+9.563*goal.current_weight+1.850*goal.height-4.676*goal.age;
   }
-}
-
-function updateGoal(){
-  const val=parseInt(document.getElementById('goal-input').value);
-  if(!val||val<100){alert('正しいカロリー目標を入力してください');return;}
-  calorieGoal=val;
-  localStorage.setItem('calorie_goal',val);
-  document.getElementById('goal-display').textContent=val;
-  document.getElementById('goal-input').value='';
-  renderHome();
-  alert('目標を'+val+'kcalに設定しました！');
 }
 
 function switchAuthTab(tab){
@@ -390,7 +368,6 @@ function loginSuccess(user){
   localStorage.setItem('pochalog_user',JSON.stringify(user));
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('header-info').textContent=user.display_name+'さん';
-  document.getElementById('goal-display').textContent=calorieGoal;
   document.getElementById('input-date').value=getLocalToday();
   document.getElementById('display-date').textContent=formatDateJP(currentDate);
   loadMeals();
@@ -434,27 +411,7 @@ async function loadHomeSteps(){
     document.getElementById('home-steps-stats').style.display='none';
   }
 }
-async function loadHomeSteps(){
-  if(!weightGoal||!currentUser) return;
-  const res=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
-  const data=await res.json();
-  const steps=data.steps||0;
-  document.getElementById('steps-input-home').value=steps||'';
-  if(steps>0&&weightGoal){
-    const bmr=calcBMR(weightGoal);
-    const stepCal=Math.round(steps*0.035);
-    const consumed=Math.round(bmr+stepCal);
-    const dayMeals=allMeals.filter(m=>m.date===currentDate);
-    const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
-    const deficit=consumed-intake;
-    document.getElementById('home-step-cal').textContent=stepCal;
-    document.getElementById('home-total-consumed').textContent=consumed;
-    document.getElementById('home-deficit').textContent=(deficit>0?'-':'+')+Math.abs(deficit);
-    document.getElementById('home-steps-stats').style.display='block';
-  }else{
-    document.getElementById('home-steps-stats').style.display='none';
-  }
-}
+
 function renderHome(){
   const dayMeals=allMeals.filter(m=>m.date===currentDate);
   const totalCal=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
@@ -465,10 +422,6 @@ function renderHome(){
   document.getElementById('today-protein').textContent=Math.round(totalProtein*10)/10;
   document.getElementById('today-fat').textContent=Math.round(totalFat*10)/10;
   document.getElementById('today-carbs').textContent=Math.round(totalCarbs*10)/10;
-  
-  
-  
-  
   const html=['breakfast','lunch','dinner','snack'].map(type=>{
     const items=dayMeals.filter(m=>m.meal_type===type);
     if(!items.length) return '';
@@ -513,7 +466,6 @@ async function postComment(meal_id){
   await loadComments(meal_id);
 }
 
-// 減量トラッカー
 async function loadWeightGoal(){
   if(!currentUser) return;
   const res=await fetch('/api/weight-goal?user_id='+currentUser.id);
@@ -561,13 +513,6 @@ async function saveStepsHome(){
   }
   alert('歩数を記録しました！');
 }
-async function saveSteps(){
-  const steps=parseInt(document.getElementById('steps-input').value)||0;
-  await fetch('/api/steps',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({user_id:currentUser.id,date:currentDate,steps})});
-  await renderWeightStats();
-  alert('歩数を記録しました！');
-}
 
 async function renderWeightStats(){
   if(!weightGoal) return;
@@ -575,20 +520,17 @@ async function renderWeightStats(){
   const stepsRes=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
   const stepsData=await stepsRes.json();
   const steps=stepsData.steps||0;
-  
   const stepCal=steps*0.035;
   const consumed=Math.round(bmr+stepCal);
   const dayMeals=allMeals.filter(m=>m.date===currentDate);
   const intake=dayMeals.reduce((s,m)=>s+(m.total_calories||0),0);
   const todayDeficit=consumed-intake;
   const totalDeficit=(weightGoal.current_weight-weightGoal.target_weight)*7200;
-  // 累計計算（全日付）
   const dateMap={};
   allMeals.forEach(m=>{
     if(!dateMap[m.date]) dateMap[m.date]=0;
     dateMap[m.date]+=(m.total_calories||0);
   });
-  // 累計は今日以外の日の収支（今日は現在値で表示）
   const allStepsRes=await fetch('/api/steps-all?user_id='+currentUser.id);
   const allStepsMap=allStepsRes.ok?await allStepsRes.json():{};
   let cumulativeDeficit=0;
@@ -598,24 +540,13 @@ async function renderWeightStats(){
     cumulativeDeficit+=(dayConsumed-dateMap[date]);
   }
   const progressPct=Math.min(Math.max((cumulativeDeficit/totalDeficit)*100,0),100);
-  const daysToGoal=todayDeficit>0?Math.ceil((totalDeficit-cumulativeDeficit)/todayDeficit):null;
-  // 今日の収支表示
   const deficitDiv=document.getElementById('deficit-display');
   if(todayDeficit>0){
-    deficitDiv.innerHTML=`<div class="deficit-card deficit-minus">
-      <div class="deficit-number">-${Math.abs(todayDeficit).toLocaleString()} kcal</div>
-      <div class="deficit-label">今日はカロリー赤字！減量に効果的 🎉</div>
-    </div>`;
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-minus"><div class="deficit-number">-${Math.abs(todayDeficit).toLocaleString()} kcal</div><div class="deficit-label">今日はカロリー赤字！減量に効果的 🎉</div></div>`;
   }else if(todayDeficit<0){
-    deficitDiv.innerHTML=`<div class="deficit-card deficit-plus">
-      <div class="deficit-number">+${Math.abs(todayDeficit).toLocaleString()} kcal</div>
-      <div class="deficit-label">今日はカロリー黒字。明日頑張ろう！</div>
-    </div>`;
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-plus"><div class="deficit-number">+${Math.abs(todayDeficit).toLocaleString()} kcal</div><div class="deficit-label">今日はカロリー黒字。明日頑張ろう！</div></div>`;
   }else{
-    deficitDiv.innerHTML=`<div class="deficit-card deficit-zero">
-      <div class="deficit-number">0 kcal</div>
-      <div class="deficit-label">収支ゼロ</div>
-    </div>`;
+    deficitDiv.innerHTML=`<div class="deficit-card deficit-zero"><div class="deficit-number">0 kcal</div><div class="deficit-label">収支ゼロ</div></div>`;
   }
   document.getElementById('weight-stats-grid').innerHTML=`
     <div class="stat-item"><div class="stat-value">${Math.round(bmr)}</div><div class="stat-label">基礎代謝 kcal</div></div>
@@ -637,21 +568,11 @@ async function renderHistory(){
   const dates=Object.keys(grouped).sort().reverse();
   const datesAsc=Object.keys(grouped).sort();
   const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
-  // 歩数データ取得
   let stepsMap={};
   if(weightGoal&&currentUser){
     const res=await fetch('/api/steps-all?user_id='+currentUser.id);
     if(res.ok) stepsMap=await res.json();
   }
-  let cumulative=0;
-  datesAsc.forEach(date=>{
-    const items=grouped[date];
-    const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
-    const steps=stepsMap[date]||0;
-    const stepCal=Math.round(steps*0.035);
-    const consumed=bmr+stepCal;
-    cumulative+=consumed-total;
-  });
   const cumulativeByDate={};
   let runningTotal=0;
   datesAsc.forEach(date=>{
@@ -674,10 +595,6 @@ async function renderHistory(){
     const stepCal=Math.round(steps*0.035);
     const consumed=bmr+stepCal;
     const deficit=consumed-total;
-    cumulative+=deficit;
-    const deficitColor=deficit>0?'#27ae60':'#e74c3c';
-    const deficitSign=deficit>0?'-':'+';
-    const weightLost=(cumulative/7200).toFixed(2);
     return `<div style="border-bottom:1px solid #eee;padding:10px 0">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>

@@ -351,7 +351,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <h2>🍴 お店を登録</h2>
       <div class="form-group"><label>お店の名前</label><input type="text" id="r-name" placeholder="例：銀座 すきやばし次郎"></div>
       <div class="nutrients-row">
-        <div class="form-group"><label>ジャンル</label><input type="text" id="r-genre" placeholder="例：寿司"></div>
+        <div class="form-group"><label>ジャンル</label><select id="r-genre"></select></div>
         <div class="form-group"><label>エリア</label><input type="text" id="r-area" placeholder="例：銀座"></div>
       </div>
       <div class="form-group"><label>URL（食べログ等）</label><input type="text" id="r-url" placeholder="https://..."></div>
@@ -424,6 +424,9 @@ let allRestaurants=[];
 let selectedRestaurantStatus='want';
 let currentRestaurantFilter='all';
 const mealTypeLabels={breakfast:'🌅 朝食',lunch:'☀️  昼食',dinner:'🌙 夕食',snack:'🍪 間食'};
+const RESTAURANT_GENRES=['寿司','焼肉','ラーメン','居酒屋','イタリアン','和食','焼き鳥','天ぷら','しゃぶしゃぶ','カフェ','フレンチ','中華','韓国料理','タイ料理','インド料理','鉄板焼き','うなぎ','そば','うどん','とんかつ','ハンバーガー','ステーキ','スペイン料理','メキシコ料理','ビュッフェ','その他'];
+function genreOptions(selected){return '<option value="">選択してください</option>'+RESTAURANT_GENRES.map(g=>`<option value="${g}"${g===selected?' selected':''}>${g}</option>`).join('');}
+function escAttr(str){return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function formatDateJP(dateStr){
   const parts=dateStr.split('-');
@@ -767,7 +770,7 @@ function renderRestaurants(){
   const filtered=currentRestaurantFilter==='all'?allRestaurants:allRestaurants.filter(r=>r.status===currentRestaurantFilter);
   if(filtered.length===0){document.getElementById('restaurant-list').innerHTML="<div class='empty'>お店がありません</div>";return;}
   document.getElementById('restaurant-list').innerHTML=filtered.map(r=>`
-    <div class="restaurant-item">
+    <div class="restaurant-item" id="rest-${r.id}">
       <div style="display:flex;justify-content:space-between;align-items:start">
         <div>
           <div class="restaurant-name">${r.name}</div>
@@ -779,6 +782,7 @@ function renderRestaurants(){
       </div>
       <div class="restaurant-actions">
         ${r.status==='want'?`<button class="btn-small btn-visited" onclick="updateRestaurantStatus('${r.id}','visited')">✅ 行った！</button>`:`<button class="btn-small btn-want" onclick="updateRestaurantStatus('${r.id}','want')">🌟 行きたいに戻す</button>`}
+        <button class="btn-small" style="background:#f39c12;color:white" onclick="editRestaurant('${r.id}')">✏️ 編集</button>
         <button class="btn-small btn-delete-small" onclick="deleteRestaurant('${r.id}')">削除</button>
       </div>
     </div>`).join('');
@@ -810,6 +814,49 @@ async function updateRestaurantStatus(id,status){
 async function deleteRestaurant(id){
   if(!confirm('このお店を削除しますか？')) return;
   await fetch('/api/restaurants/'+id,{method:'DELETE'});
+  await loadRestaurants();
+}
+
+function editRestaurant(id){
+  const r=allRestaurants.find(x=>String(x.id)===String(id));
+  if(!r) return;
+  const el=document.getElementById('rest-'+id);
+  el.innerHTML=`
+    <div class="form-group"><label>お店の名前</label><input type="text" id="edit-name-${id}" value="${escAttr(r.name)}"></div>
+    <div class="nutrients-row">
+      <div class="form-group"><label>ジャンル</label><select id="edit-genre-${id}">${genreOptions(r.genre||'')}</select></div>
+      <div class="form-group"><label>エリア</label><input type="text" id="edit-area-${id}" value="${escAttr(r.area||'')}"></div>
+    </div>
+    <div class="form-group"><label>URL（食べログ等）</label><input type="text" id="edit-url-${id}" value="${escAttr(r.url||'')}"></div>
+    <div class="form-group"><label>メモ</label><textarea id="edit-memo-${id}" rows="2">${escHtml(r.memo||'')}</textarea></div>
+    <div class="form-group">
+      <label>ステータス</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <div class="meal-type-btn ${r.status==='want'?'selected':''}" id="edit-rs-want-${id}" onclick="selectEditStatus('${id}','want')">🌟 行きたい</div>
+        <div class="meal-type-btn ${r.status==='visited'?'selected':''}" id="edit-rs-visited-${id}" onclick="selectEditStatus('${id}','visited')">✅ 行った</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-small btn-visited" onclick="saveEditRestaurant('${id}')">💾 保存</button>
+      <button class="btn-small" style="background:#f0f0f0;color:#555" onclick="renderRestaurants()">キャンセル</button>
+    </div>`;
+}
+
+function selectEditStatus(id,status){
+  document.getElementById('edit-rs-want-'+id).classList.toggle('selected',status==='want');
+  document.getElementById('edit-rs-visited-'+id).classList.toggle('selected',status==='visited');
+}
+
+async function saveEditRestaurant(id){
+  const name=document.getElementById('edit-name-'+id).value.trim();
+  if(!name){alert('お店の名前を入力してください');return;}
+  const genre=document.getElementById('edit-genre-'+id).value;
+  const area=document.getElementById('edit-area-'+id).value.trim();
+  const url=document.getElementById('edit-url-'+id).value.trim();
+  const memo=document.getElementById('edit-memo-'+id).value.trim();
+  const status=document.getElementById('edit-rs-visited-'+id).classList.contains('selected')?'visited':'want';
+  await fetch('/api/restaurants/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,genre,area,url,memo,status})});
   await loadRestaurants();
 }
 
@@ -1133,6 +1180,7 @@ function selectMealType(type){
   });
 }
 
+document.getElementById('r-genre').innerHTML=genreOptions('');
 const saved=localStorage.getItem('pochalog_user');
 if(saved) loginSuccess(JSON.parse(saved));
 </script>

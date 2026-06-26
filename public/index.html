@@ -97,7 +97,6 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .weekly-item{background:#f8f9ff;border-radius:10px;padding:12px;text-align:center}
 .weekly-value{font-size:20px;font-weight:bold;color:#667eea}
 .weekly-label{font-size:11px;color:#888;margin-top:4px}
-/* レストラン */
 .restaurant-tabs{display:flex;gap:8px;margin-bottom:12px}
 .restaurant-tab{flex:1;padding:8px;text-align:center;border:2px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;color:#888}
 .restaurant-tab.active{border-color:#667eea;color:#667eea;font-weight:bold;background:#f0f0ff}
@@ -287,9 +286,9 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 
   <!-- 履歴 -->
   <div class="page" id="page-history">
-    <div class="card" id="weekly-summary-card">
+    <div class="card">
       <h2>📊 今週のサマリー</h2>
-      <div class="weekly-grid" id="weekly-summary-grid">
+      <div class="weekly-grid">
         <div class="weekly-item"><div class="weekly-value" id="w-avg-cal">-</div><div class="weekly-label">平均摂取カロリー (kcal/日)</div></div>
         <div class="weekly-item"><div class="weekly-value" id="w-avg-deficit" style="color:#27ae60">-</div><div class="weekly-label">平均収支 (kcal/日)</div></div>
         <div class="weekly-item"><div class="weekly-value" id="w-total-deficit" style="color:#667eea">-</div><div class="weekly-label">今週の累計赤字 (kcal)</div></div>
@@ -350,7 +349,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div id="friends-list"><div class="empty">まだ友達がいません</div></div>
     </div>
     <div class="card" id="friend-meals-card" style="display:none">
-      <h2 id="friend-meals-title">友達の食事</h2>
+      <h2 id="friend-meals-title">友達の情報</h2>
       <button class="btn btn-secondary" onclick="document.getElementById('friend-meals-card').style.display='none'" style="margin-bottom:12px">✕ 閉じる</button>
       <div id="friend-meals-list"></div>
     </div>
@@ -390,11 +389,8 @@ function formatDateJP(dateStr){
 
 function calcBMR(goal){
   if(!goal) return 0;
-  if(goal.gender==='male'){
-    return 66.5+13.75*goal.current_weight+5.003*goal.height-6.755*goal.age;
-  }else{
-    return 655.1+9.563*goal.current_weight+1.850*goal.height-4.676*goal.age;
-  }
+  if(goal.gender==='male') return 66.5+13.75*goal.current_weight+5.003*goal.height-6.755*goal.age;
+  return 655.1+9.563*goal.current_weight+1.850*goal.height-4.676*goal.age;
 }
 
 function switchAuthTab(tab){
@@ -595,10 +591,7 @@ async function renderWeightStats(){
   const todayDeficit=consumed-intake;
   const totalDeficit=(weightGoal.current_weight-weightGoal.target_weight)*7200;
   const dateMap={};
-  allMeals.forEach(m=>{
-    if(!dateMap[m.date]) dateMap[m.date]=0;
-    dateMap[m.date]+=(m.total_calories||0);
-  });
+  allMeals.forEach(m=>{if(!dateMap[m.date])dateMap[m.date]=0;dateMap[m.date]+=(m.total_calories||0);});
   const allStepsRes=await fetch('/api/steps-all?user_id='+currentUser.id);
   const allStepsMap=allStepsRes.ok?await allStepsRes.json():{};
   let cumulativeDeficit=0;
@@ -646,27 +639,21 @@ async function renderHistory(){
   if(weekDates.length>0){
     const weekCalTotal=weekDates.reduce((s,d)=>s+grouped[d].reduce((ss,m)=>ss+(m.total_calories||0),0),0);
     const weekAvgCal=Math.round(weekCalTotal/weekDates.length);
-    let weekDeficitTotal=0;
-    let weekStepsTotal=0;
+    let weekDeficitTotal=0,weekStepsTotal=0;
     weekDates.forEach(d=>{
       const intake=grouped[d].reduce((s,m)=>s+(m.total_calories||0),0);
       const steps=stepsMap[d]||0;
       weekStepsTotal+=steps;
-      const consumed=bmr+Math.round(steps*0.035);
-      weekDeficitTotal+=consumed-intake;
+      weekDeficitTotal+=(bmr+Math.round(steps*0.035))-intake;
     });
-    const weekAvgDeficit=Math.round(weekDeficitTotal/weekDates.length);
-    const weekAvgSteps=Math.round(weekStepsTotal/weekDates.length);
     document.getElementById('w-avg-cal').textContent=weekAvgCal.toLocaleString();
+    const weekAvgDeficit=Math.round(weekDeficitTotal/weekDates.length);
     document.getElementById('w-avg-deficit').textContent=(weekAvgDeficit>0?'-':'+')+Math.abs(weekAvgDeficit).toLocaleString();
     document.getElementById('w-avg-deficit').style.color=weekAvgDeficit>0?'#27ae60':'#e74c3c';
     document.getElementById('w-total-deficit').textContent=weekDeficitTotal>0?('-'+weekDeficitTotal.toLocaleString()):('+'+Math.abs(weekDeficitTotal).toLocaleString());
-    document.getElementById('w-avg-steps').textContent=weekAvgSteps.toLocaleString();
+    document.getElementById('w-avg-steps').textContent=Math.round(weekStepsTotal/weekDates.length).toLocaleString();
   }else{
-    document.getElementById('w-avg-cal').textContent='記録なし';
-    document.getElementById('w-avg-deficit').textContent='記録なし';
-    document.getElementById('w-total-deficit').textContent='記録なし';
-    document.getElementById('w-avg-steps').textContent='記録なし';
+    ['w-avg-cal','w-avg-deficit','w-total-deficit','w-avg-steps'].forEach(id=>document.getElementById(id).textContent='記録なし');
   }
   const cumulativeByDate={};
   let runningTotal=0;
@@ -674,9 +661,7 @@ async function renderHistory(){
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
     const steps=stepsMap[date]||0;
-    const stepCal=Math.round(steps*0.035);
-    const consumed=bmr+stepCal;
-    runningTotal+=consumed-total;
+    runningTotal+=(bmr+Math.round(steps*0.035))-total;
     cumulativeByDate[date]=runningTotal;
   });
   const totalNeeded=weightGoal?(weightGoal.current_weight-weightGoal.target_weight)*7200:0;
@@ -687,8 +672,7 @@ async function renderHistory(){
     const totalF=items.reduce((s,m)=>s+(m.fat||0),0);
     const totalC=items.reduce((s,m)=>s+(m.carbs||0),0);
     const steps=stepsMap[date]||0;
-    const stepCal=Math.round(steps*0.035);
-    const consumed=bmr+stepCal;
+    const consumed=bmr+Math.round(steps*0.035);
     const deficit=consumed-total;
     return `<div style="border-bottom:1px solid #eee;padding:10px 0">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -714,7 +698,6 @@ async function renderHistory(){
   document.getElementById('history-list').innerHTML=rows.join('')||"<div class='empty'>履歴がありません</div>";
 }
 
-// レストラン機能
 async function loadRestaurants(){
   if(!currentUser) return;
   const res=await fetch('/api/restaurants?user_id='+currentUser.id);
@@ -738,10 +721,7 @@ function filterRestaurants(filter,el){
 
 function renderRestaurants(){
   const filtered=currentRestaurantFilter==='all'?allRestaurants:allRestaurants.filter(r=>r.status===currentRestaurantFilter);
-  if(filtered.length===0){
-    document.getElementById('restaurant-list').innerHTML="<div class='empty'>お店がありません</div>";
-    return;
-  }
+  if(filtered.length===0){document.getElementById('restaurant-list').innerHTML="<div class='empty'>お店がありません</div>";return;}
   document.getElementById('restaurant-list').innerHTML=filtered.map(r=>`
     <div class="restaurant-item">
       <div style="display:flex;justify-content:space-between;align-items:start">
@@ -938,6 +918,7 @@ function renderFriends(){
     <div style="display:flex;flex-direction:column;gap:4px">
       <button class="friend-btn btn-view" onclick="viewFriendMeals('${f.friend_id}','${f.display_name}')">食事を見る</button>
       <button class="friend-btn" style="background:#27ae60;color:white" onclick="viewFriendProgress('${f.friend_id}','${f.display_name}')">進捗を見る</button>
+      <button class="friend-btn" style="background:#f39c12;color:white" onclick="viewFriendRestaurants('${f.friend_id}','${f.display_name}')">お店を見る</button>
     </div>
   </div>`).join('');
   document.getElementById('friends-list').innerHTML=friendsHTML||"<div class='empty'>まだ友達がいません</div>";
@@ -1013,6 +994,42 @@ async function viewFriendProgress(friend_id,display_name){
       <div style="font-size:13px;color:#555;margin-top:12px">累計カロリー赤字: ${data.cumulative_deficit.toLocaleString()} kcal</div>
       <div style="font-size:13px;color:#aaa;margin-top:4px">目標合計: ${data.total_deficit.toLocaleString()} kcal</div>
     </div>`;
+  document.getElementById('friend-meals-card').style.display='block';
+}
+
+async function viewFriendRestaurants(friend_id,display_name){
+  const res=await fetch(`/api/friend-restaurants?user_id=${currentUser.id}&friend_id=${friend_id}`);
+  if(!res.ok){alert('お店データの取得に失敗しました');return;}
+  const restaurants=await res.json();
+  if(restaurants.length===0){
+    document.getElementById('friend-meals-title').textContent=display_name+'さんのお店リスト';
+    document.getElementById('friend-meals-list').innerHTML="<div class='empty'>お店が登録されていません</div>";
+    document.getElementById('friend-meals-card').style.display='block';
+    return;
+  }
+  const wantList=restaurants.filter(r=>r.status==='want');
+  const visitedList=restaurants.filter(r=>r.status==='visited');
+  let html='';
+  if(wantList.length>0){
+    html+=`<div style="font-weight:bold;font-size:13px;color:#667eea;margin:8px 0">🌟 行きたいお店</div>`;
+    html+=wantList.map(r=>`<div class="restaurant-item">
+      <div class="restaurant-name">${r.name}</div>
+      <div class="restaurant-meta">${r.genre||''}${r.genre&&r.area?' / ':''}${r.area||''}</div>
+      ${r.memo?`<div style="font-size:12px;color:#666;margin-top:2px">${r.memo}</div>`:''}
+      ${r.url?`<a href="${r.url}" target="_blank" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
+    </div>`).join('');
+  }
+  if(visitedList.length>0){
+    html+=`<div style="font-weight:bold;font-size:13px;color:#27ae60;margin:8px 0">✅ 行ったお店</div>`;
+    html+=visitedList.map(r=>`<div class="restaurant-item">
+      <div class="restaurant-name">${r.name}</div>
+      <div class="restaurant-meta">${r.genre||''}${r.genre&&r.area?' / ':''}${r.area||''}</div>
+      ${r.memo?`<div style="font-size:12px;color:#666;margin-top:2px">${r.memo}</div>`:''}
+      ${r.url?`<a href="${r.url}" target="_blank" style="font-size:12px;color:#667eea">🔗 リンクを開く</a>`:''}
+    </div>`).join('');
+  }
+  document.getElementById('friend-meals-title').textContent=display_name+'さんのお店リスト';
+  document.getElementById('friend-meals-list').innerHTML=html;
   document.getElementById('friend-meals-card').style.display='block';
 }
 

@@ -793,9 +793,10 @@ async function renderHistory(){
     const steps=stepsMap[date]||0;
     const consumed=bmr+Math.round(steps*0.035);
     const deficit=consumed-total;
+    const hasAlcohol=items.some(m=>m.has_alcohol);
     return `<div style="border-bottom:1px solid #eee;padding:10px 0">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}</span>
+        <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}${hasAlcohol?' 🍺':''}</span>
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
       <div style="font-size:12px;color:#999;margin-top:2px">P:${Math.round(totalP*10)/10}g F:${Math.round(totalF*10)/10}g C:${Math.round(totalC*10)/10}g</div>
@@ -934,6 +935,12 @@ async function saveEditRestaurant(id){
   await loadRestaurants();
 }
 
+const ALCOHOL_KEYWORDS=['ビール','ワイン','日本酒','焼酎','ウイスキー','チューハイ','ハイボール','酎ハイ','カクテル','サワー','梅酒','シャンパン','ブランデー','ジン','ウォッカ','テキーラ','なまちゅう','生ビール','お酒','酒'];
+function detectAlcohol(text){
+  const t=String(text||'');
+  return ALCOHOL_KEYWORDS.some(k=>t.includes(k));
+}
+
 function clearMealForm(){
   document.getElementById('input-meals').value='';
   document.getElementById('input-calories').value='';
@@ -960,8 +967,9 @@ async function saveMeal(){
   const sodium=parseFloat(document.getElementById('input-sodium').value)||0;
   const restaurant_name=document.getElementById('input-restaurant').value.trim();
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
+  const has_alcohol=detectAlcohol(meals_data);
   await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,restaurant_name})});
+    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,has_alcohol,restaurant_name})});
   clearMealForm();
   alert('保存しました！');
   await loadMeals();

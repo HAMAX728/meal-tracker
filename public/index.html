@@ -774,12 +774,24 @@ function renderDietStart(){
   </div>`;
 }
 
+// 減量開始日・開始体重を取得する。
+// localStorageを優先するが、localStorageは端末ごとに別管理のため、未設定の端末（例:別のスマホ）では
+// サーバー同期済みのデータから補完する（開始日=最初の記録日、開始体重=現在体重）。
+function getDietStart(){
+  let startDate=localStorage.getItem(DIET_START_KEY);
+  if(!startDate&&Array.isArray(allMeals)&&allMeals.length){
+    startDate=allMeals.reduce((min,m)=>(m.date&&(!min||m.date<min))?m.date:min,null);
+  }
+  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
+  if((!startWeight||isNaN(startWeight))&&weightGoal) startWeight=parseFloat(weightGoal.current_weight);
+  if(!startWeight||isNaN(startWeight)) startWeight=null;
+  return {startDate:startDate||null,startWeight};
+}
+
 function renderEstimatedWeight(dateMap,stepsMap,bmr){
   const card=document.getElementById('estimated-weight-card');
   if(!card) return;
-  const startDate=localStorage.getItem(DIET_START_KEY);
-  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
-  if(!startWeight&&weightGoal) startWeight=weightGoal.current_weight;
+  const {startDate,startWeight}=getDietStart();
   if(!startDate||!startWeight){card.style.display='none';return;}
   let deficitSinceStart=0;
   for(const date of Object.keys(dateMap)){
@@ -801,9 +813,7 @@ function renderTheoreticalWeightChart(stepsMap,bmr){
   const card=document.getElementById('theoretical-weight-card');
   const el=document.getElementById('theoretical-weight-chart');
   if(!card||!el) return;
-  const startDate=localStorage.getItem(DIET_START_KEY);
-  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
-  if(!startWeight&&weightGoal) startWeight=weightGoal.current_weight;
+  const {startDate,startWeight}=getDietStart();
   if(!startDate||!startWeight){card.style.display='none';return;}
   const today=getLocalToday();
   const dateMap={};

@@ -354,6 +354,8 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div class="weekly-item"><div class="weekly-value" id="w-avg-deficit" style="color:#27ae60">-</div><div class="weekly-label">平均収支 (kcal/日)</div></div>
         <div class="weekly-item"><div class="weekly-value" id="w-total-deficit" style="color:#667eea">-</div><div class="weekly-label">今週の累計赤字 (kcal)</div></div>
         <div class="weekly-item"><div class="weekly-value" id="w-avg-steps">-</div><div class="weekly-label">平均歩数 (歩/日)</div></div>
+        <div class="weekly-item"><div class="weekly-value" id="w-alcohol-days" style="color:#e67e22">-</div><div class="weekly-label">飲酒日数 (日/今週)</div></div>
+        <div class="weekly-item"><div class="weekly-value" id="w-total-alcohol" style="color:#e67e22">-</div><div class="weekly-label">今週の合計アルコール量 (g)</div></div>
       </div>
     </div>
     <div class="card">
@@ -919,12 +921,14 @@ async function renderHistory(){
   if(weekDates.length>0){
     const weekCalTotal=weekDates.reduce((s,d)=>s+grouped[d].reduce((ss,m)=>ss+(m.total_calories||0),0),0);
     const weekAvgCal=Math.round(weekCalTotal/weekDates.length);
-    let weekDeficitTotal=0,weekStepsTotal=0;
+    let weekDeficitTotal=0,weekStepsTotal=0,weekAlcoholDays=0,weekAlcoholTotal=0;
     weekDates.forEach(d=>{
       const intake=grouped[d].reduce((s,m)=>s+(m.total_calories||0),0);
       const steps=stepsMap[d]||0;
       weekStepsTotal+=steps;
       weekDeficitTotal+=(bmr+Math.round(steps*0.035))-intake;
+      weekAlcoholTotal+=grouped[d].reduce((s,m)=>s+(parseFloat(m.alcohol_g)||0),0);
+      if(grouped[d].some(m=>m.has_alcohol)) weekAlcoholDays++;
     });
     document.getElementById('w-avg-cal').textContent=weekAvgCal.toLocaleString();
     const weekAvgDeficit=Math.round(weekDeficitTotal/weekDates.length);
@@ -932,8 +936,10 @@ async function renderHistory(){
     document.getElementById('w-avg-deficit').style.color=weekAvgDeficit>0?'#27ae60':'#e74c3c';
     document.getElementById('w-total-deficit').textContent=weekDeficitTotal>0?('-'+weekDeficitTotal.toLocaleString()):('+'+Math.abs(weekDeficitTotal).toLocaleString());
     document.getElementById('w-avg-steps').textContent=Math.round(weekStepsTotal/weekDates.length).toLocaleString();
+    document.getElementById('w-alcohol-days').textContent=`${weekDates.length}日中 ${weekAlcoholDays}日`;
+    document.getElementById('w-total-alcohol').textContent=(Math.round(weekAlcoholTotal*10)/10).toLocaleString();
   }else{
-    ['w-avg-cal','w-avg-deficit','w-total-deficit','w-avg-steps'].forEach(id=>document.getElementById(id).textContent='記録なし');
+    ['w-avg-cal','w-avg-deficit','w-total-deficit','w-avg-steps','w-alcohol-days','w-total-alcohol'].forEach(id=>document.getElementById(id).textContent='記録なし');
   }
   const cumulativeByDate={};
   let runningTotal=0;
@@ -1184,7 +1190,8 @@ function renderNutritionBreakdown(){
     });
   }
   const t=splitNutrient(parsed.total||{},n);
-  html+=`<div class='nutrition-total'><span>📊 合計${n>1?'（1人分）':''}</span><span>${t.calories}kcal P:${t.protein}g F:${t.fat}g C:${t.carbs}g 塩分:${t.sodium}mg</span></div></div>
+  const ag=parseFloat(parsed.total&&parsed.total.alcohol_g)||0;
+  html+=`<div class='nutrition-total'><span>📊 合計${n>1?'（1人分）':''}</span><span>${t.calories}kcal P:${t.protein}g F:${t.fat}g C:${t.carbs}g 塩分:${t.sodium}mg${ag>0?` 🍶${Math.round(ag*10)/10}g`:''}</span></div></div>
   <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(parsed.total||{})})'>✅ この値を使用する</button>`;
   resultDiv.innerHTML=html;
 }
@@ -1201,11 +1208,16 @@ async function calcNutritionFromText(){
   resultDiv.innerHTML="<div class='ai-loading'>🤖 AIが計算中...</div>";
   try{
     const text=await callAI(
-      'あなたは栄養士AIです。食事内容から各食品のカロリーと栄養素を推定してください。塩分(sodium)はmg単位です。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}}',
+      'あなたは栄養士AIです。食事内容から各食品のカロリーと栄養素を推定してください。塩分(sodium)はmg単位です。お酒（アルコール飲料）が含まれる場合は、その純アルコール量の合計(alcohol_g、g単位)も推定してください（飲酒量×アルコール度数×0.8で計算。例:ビール500ml≈20g、日本酒1合≈22g、ワイングラス1杯≈12g）。お酒が無い場合はalcohol_gを0にしてください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0,"alcohol_g":0}}',
       `以下の食事のカロリーと栄養素をJSON形式で:\n${meals}`
     );
     const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     showNutritionBreakdown(parsed);
+    const ag=parseFloat(parsed.total&&parsed.total.alcohol_g)||0;
+    if(ag>0){
+      document.getElementById('alcohol-field').style.display='block';
+      document.getElementById('input-alcohol').value=Math.round(ag*10)/10;
+    }
   }catch(e){
     resultDiv.innerHTML="<div class='ai-bubble'>⚠️ 計算に失敗しました。もう一度試してください。</div>";
   }

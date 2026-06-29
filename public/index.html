@@ -867,7 +867,7 @@ function summaryHTML(s){
     <div class="weekly-item"><div class="weekly-value">${s.totalIntake.toLocaleString()}</div><div class="weekly-label">総摂取カロリー (kcal)</div></div>
     <div class="weekly-item"><div class="weekly-value">${s.totalConsumed.toLocaleString()}</div><div class="weekly-label">総消費カロリー (kcal)</div></div>
     <div class="weekly-item"><div class="weekly-value" style="color:${deficitColor}">${deficitSign}${Math.abs(s.deficit).toLocaleString()}</div><div class="weekly-label">累計赤字 (kcal)</div></div>
-    <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.alcoholDays} 🍺</div><div class="weekly-label">累計お酒日数 (日)</div></div>
+    <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.n}日中${s.alcoholDays}日 🍺</div><div class="weekly-label">飲酒日数</div></div>
     <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${(Math.round(s.totalAlcohol*10)/10).toLocaleString()}</div><div class="weekly-label">累計アルコール量 (g)</div></div>
     <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.avgAlcohol.toLocaleString()}</div><div class="weekly-label">平均アルコール量 (g/日)</div></div>
     <div class="weekly-item"><div class="weekly-value">${s.avgIntake.toLocaleString()}</div><div class="weekly-label">平均摂取カロリー (kcal/日)</div></div>

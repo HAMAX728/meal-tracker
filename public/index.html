@@ -1150,8 +1150,8 @@ async function saveMeal(){
   const sodium=parseFloat(document.getElementById('input-sodium').value)||0;
   const restaurant_name=document.getElementById('input-restaurant').value.trim();
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
-  const has_alcohol=detectAlcohol(meals_data);
-  const alcohol_g=has_alcohol?(parseFloat(document.getElementById('input-alcohol').value)||0):0;
+  const alcohol_g=parseFloat(document.getElementById('input-alcohol').value)||0;
+  const has_alcohol=detectAlcohol(meals_data)||alcohol_g>0;
   await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,has_alcohol,alcohol_g,restaurant_name})});
   clearMealForm();
@@ -1185,6 +1185,20 @@ function showNutritionBreakdown(parsed){
   renderNutritionBreakdown();
 }
 
+// AIのtotalが欠落/0でもitemsから合計を復元する
+function deriveTotal(parsed){
+  if(!parsed) return {};
+  const t=Object.assign({},parsed.total||{});
+  const items=Array.isArray(parsed.items)?parsed.items:[];
+  ['calories','protein','fat','carbs','sodium','alcohol_g'].forEach(k=>{
+    if(!(parseFloat(t[k])>0)&&items.length){
+      const s=items.reduce((acc,it)=>acc+(parseFloat(it[k])||0),0);
+      if(s>0) t[k]=s;
+    }
+  });
+  return t;
+}
+
 function renderNutritionBreakdown(){
   const parsed=lastAIResult;
   const resultDiv=document.getElementById('ai-calc-result');
@@ -1197,16 +1211,23 @@ function renderNutritionBreakdown(){
       html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${it.calories}kcal P:${it.protein}g F:${it.fat}g C:${it.carbs}g 塩分:${it.sodium}mg</span></div>`;
     });
   }
-  const t=splitNutrient(parsed.total||{},n);
-  const ag=parseFloat(parsed.total&&parsed.total.alcohol_g)||0;
+  const total=deriveTotal(parsed);
+  const t=splitNutrient(total,n);
+  const ag=parseFloat(total.alcohol_g)||0;
   html+=`<div class='nutrition-total'><span>📊 合計${n>1?'（1人分）':''}</span><span>${t.calories}kcal P:${t.protein}g F:${t.fat}g C:${t.carbs}g 塩分:${t.sodium}mg${ag>0?` 🍶${Math.round(ag*10)/10}g`:''}</span></div></div>
-  <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(parsed.total||{})})'>✅ この値を使用する</button>`;
+  <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(total)})'>✅ この値を使用する</button>`;
   resultDiv.innerHTML=html;
 }
 
 function applyAIResult(total){
-  nutrientBase={calories:total.calories||0,protein:total.protein||0,fat:total.fat||0,carbs:total.carbs||0,sodium:total.sodium||0};
+  total=total||{};
+  nutrientBase={calories:parseFloat(total.calories)||0,protein:parseFloat(total.protein)||0,fat:parseFloat(total.fat)||0,carbs:parseFloat(total.carbs)||0,sodium:parseFloat(total.sodium)||0};
   applySplitToInputs();
+  const ag=parseFloat(total.alcohol_g)||0;
+  if(ag>0){
+    document.getElementById('alcohol-field').style.display='block';
+    document.getElementById('input-alcohol').value=Math.round(ag*10)/10;
+  }
 }
 
 async function calcNutritionFromText(){
@@ -1221,7 +1242,7 @@ async function calcNutritionFromText(){
     );
     const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     showNutritionBreakdown(parsed);
-    const ag=parseFloat(parsed.total&&parsed.total.alcohol_g)||0;
+    const ag=parseFloat(deriveTotal(parsed).alcohol_g)||0;
     if(ag>0){
       document.getElementById('alcohol-field').style.display='block';
       document.getElementById('input-alcohol').value=Math.round(ag*10)/10;

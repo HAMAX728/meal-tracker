@@ -230,6 +230,11 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
         <div class="nutrient-card sodium"><div class="value" id="today-sodium">0</div><div class="unit">mg</div><div class="label">塩分</div></div>
       </div>
+      <div id="today-alcohol-row" style="display:none;margin-top:12px;text-align:center;background:#fff3e0;border-radius:10px;padding:10px">
+        <span style="font-size:13px;color:#e67e22">🍶 今日の純アルコール量: </span>
+        <span style="font-size:22px;font-weight:bold;color:#e67e22" id="today-alcohol">0</span>
+        <span style="font-size:12px;color:#999">g</span>
+      </div>
     </div>
     <div class="card">
       <h2>👟 今日の歩数・消費カロリー</h2>
@@ -275,7 +280,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         </div>
       </div>
       <div class="form-group"><label>お店・場所（任意）</label><input type="text" id="input-restaurant" placeholder="例：銀座 すきやばし次郎"></div>
-      <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3"></textarea></div>
+      <div class="form-group"><label>食事内容</label><textarea id="input-meals" placeholder="例：ご飯、味噌汁、焼き魚" rows="3" oninput="onMealsInput()"></textarea></div>
       <button class="btn btn-ai" onclick="calcNutritionFromText()">🤖 AIでカロリー計算</button>
       <div class="form-group" style="margin-top:12px">
         <label>📷 写真・カメラでAI分析（複数枚OK）</label>
@@ -299,6 +304,10 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15" oninput="onNutrientInput('fat')"></div>
         <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80" oninput="onNutrientInput('carbs')"></div>
         <div class="form-group"><label>塩分（mg）</label><input type="number" id="input-sodium" placeholder="例：2000" oninput="onNutrientInput('sodium')"></div>
+      </div>
+      <div class="form-group" id="alcohol-field" style="display:none">
+        <label>🍶 純アルコール量（g）<span style="font-weight:normal;color:#999;font-size:12px">※お酒を検出しました</span></label>
+        <input type="number" id="input-alcohol" placeholder="例：20（ビール500ml≈20g）" step="0.1">
       </div>
       <div class="form-group">
         <label>何人で食べましたか？（入力値を人数で割って1人分を保存）</label>
@@ -612,6 +621,14 @@ function renderHome(){
   const totalFat=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
   const totalCarbs=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
   const totalSodium=dayMeals.reduce((s,m)=>s+(m.sodium||0),0);
+  const totalAlcohol=dayMeals.reduce((s,m)=>s+(parseFloat(m.alcohol_g)||0),0);
+  const alcoholRow=document.getElementById('today-alcohol-row');
+  if(totalAlcohol>0){
+    document.getElementById('today-alcohol').textContent=Math.round(totalAlcohol*10)/10;
+    alcoholRow.style.display='block';
+  }else{
+    alcoholRow.style.display='none';
+  }
   document.getElementById('today-calories').textContent=totalCal.toLocaleString();
   document.getElementById('today-protein').textContent=Math.round(totalProtein*10)/10;
   document.getElementById('today-fat').textContent=Math.round(totalFat*10)/10;
@@ -824,18 +841,20 @@ function computeSummary(startDate,endDate){
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
   const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
   const dates=Object.keys(grouped).filter(d=>(!startDate||d>=startDate)&&(!endDate||d<=endDate));
-  let totalIntake=0,totalConsumed=0,totalSteps=0,alcoholDays=0;
+  let totalIntake=0,totalConsumed=0,totalSteps=0,alcoholDays=0,totalAlcohol=0;
   dates.forEach(d=>{
     const intake=grouped[d].reduce((s,m)=>s+(m.total_calories||0),0);
     const steps=historyStepsMap[d]||0;
     totalIntake+=intake;
     totalConsumed+=bmr+Math.round(steps*0.035);
     totalSteps+=steps;
+    totalAlcohol+=grouped[d].reduce((s,m)=>s+(parseFloat(m.alcohol_g)||0),0);
     if(grouped[d].some(m=>m.has_alcohol)) alcoholDays++;
   });
   const n=dates.length;
-  return {n,totalIntake,totalConsumed,deficit:totalConsumed-totalIntake,alcoholDays,
-    avgIntake:n?Math.round(totalIntake/n):0,avgSteps:n?Math.round(totalSteps/n):0};
+  return {n,totalIntake,totalConsumed,deficit:totalConsumed-totalIntake,alcoholDays,totalAlcohol,
+    avgIntake:n?Math.round(totalIntake/n):0,avgSteps:n?Math.round(totalSteps/n):0,
+    avgAlcohol:n?Math.round((totalAlcohol/n)*10)/10:0};
 }
 
 function summaryHTML(s){
@@ -847,6 +866,8 @@ function summaryHTML(s){
     <div class="weekly-item"><div class="weekly-value">${s.totalConsumed.toLocaleString()}</div><div class="weekly-label">総消費カロリー (kcal)</div></div>
     <div class="weekly-item"><div class="weekly-value" style="color:${deficitColor}">${deficitSign}${Math.abs(s.deficit).toLocaleString()}</div><div class="weekly-label">累計赤字 (kcal)</div></div>
     <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.alcoholDays} 🍺</div><div class="weekly-label">累計お酒日数 (日)</div></div>
+    <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${(Math.round(s.totalAlcohol*10)/10).toLocaleString()}</div><div class="weekly-label">累計アルコール量 (g)</div></div>
+    <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.avgAlcohol.toLocaleString()}</div><div class="weekly-label">平均アルコール量 (g/日)</div></div>
     <div class="weekly-item"><div class="weekly-value">${s.avgIntake.toLocaleString()}</div><div class="weekly-label">平均摂取カロリー (kcal/日)</div></div>
     <div class="weekly-item"><div class="weekly-value">${s.avgSteps.toLocaleString()}</div><div class="weekly-label">平均歩数 (歩/日)</div></div>
   </div>
@@ -1081,6 +1102,12 @@ function detectAlcohol(text){
   return ALCOHOL_KEYWORDS.some(k=>t.includes(k));
 }
 
+function onMealsInput(){
+  const field=document.getElementById('alcohol-field');
+  if(!field) return;
+  field.style.display=detectAlcohol(document.getElementById('input-meals').value)?'block':'none';
+}
+
 function clearMealForm(){
   document.getElementById('input-meals').value='';
   document.getElementById('input-calories').value='';
@@ -1088,6 +1115,8 @@ function clearMealForm(){
   document.getElementById('input-fat').value='';
   document.getElementById('input-carbs').value='';
   document.getElementById('input-sodium').value='';
+  document.getElementById('input-alcohol').value='';
+  document.getElementById('alcohol-field').style.display='none';
   document.getElementById('input-restaurant').value='';
   document.getElementById('ai-calc-result').innerHTML='';
   lastAIResult=null;
@@ -1108,8 +1137,9 @@ async function saveMeal(){
   const restaurant_name=document.getElementById('input-restaurant').value.trim();
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
   const has_alcohol=detectAlcohol(meals_data);
+  const alcohol_g=has_alcohol?(parseFloat(document.getElementById('input-alcohol').value)||0):0;
   await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,has_alcohol,restaurant_name})});
+    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,has_alcohol,alcohol_g,restaurant_name})});
   clearMealForm();
   alert('保存しました！');
   await loadMeals();

@@ -8,3 +8,6 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notification_email text;
 
 -- 3. お酒フラグ
 ALTER TABLE meals ADD COLUMN IF NOT EXISTS has_alcohol boolean DEFAULT false;
+
+-- 4. 純アルコール量（g）
+ALTER TABLE meals ADD COLUMN IF NOT EXISTS alcohol_g numeric DEFAULT 0;

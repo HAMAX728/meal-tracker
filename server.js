@@ -57,8 +57,8 @@ app.get('/api/meals',async(req,res)=>{
 });
 
 app.post('/api/meals',async(req,res)=>{
-  const{user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,has_alcohol,restaurant_name}=req.body;
-  const{error}=await supabase.from('meals').insert({user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,has_alcohol,restaurant_name});
+  const{user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,has_alcohol,alcohol_g,restaurant_name}=req.body;
+  const{error}=await supabase.from('meals').insert({user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,has_alcohol,alcohol_g,restaurant_name});
   if(error) return res.status(500).json({error});
   if(restaurant_name&&restaurant_name.trim()){
     const{data:existing}=await supabase.from('restaurants').select('id').eq('user_id',user_id).eq('name',restaurant_name.trim()).single();

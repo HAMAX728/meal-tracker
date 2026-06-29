@@ -235,6 +235,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <span style="font-size:22px;font-weight:bold;color:#e67e22" id="today-alcohol">0</span>
         <span style="font-size:12px;color:#999">g</span>
       </div>
+      <div id="alcohol-warning" style="display:none;margin-top:8px;text-align:center;background:#fdecea;border:1px solid #e74c3c;border-radius:10px;padding:10px;color:#e74c3c;font-size:13px;font-weight:bold">⚠️ 本日のアルコール摂取量が適正量（20g）を超えています</div>
     </div>
     <div class="card">
       <h2>👟 今日の歩数・消費カロリー</h2>
@@ -631,6 +632,7 @@ function renderHome(){
   }else{
     alcoholRow.style.display='none';
   }
+  document.getElementById('alcohol-warning').style.display=totalAlcohol>20?'block':'none';
   document.getElementById('today-calories').textContent=totalCal.toLocaleString();
   document.getElementById('today-protein').textContent=Math.round(totalProtein*10)/10;
   document.getElementById('today-fat').textContent=Math.round(totalFat*10)/10;

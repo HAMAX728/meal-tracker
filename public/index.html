@@ -69,6 +69,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
 .nutrient-card.protein .value{color:#e74c3c}
 .nutrient-card.fat .value{color:#f39c12}
 .nutrient-card.carbs .value{color:#27ae60}
+.nutrient-card.sodium .value{color:#3498db}
 .ai-loading{text-align:center;padding:16px;color:#667eea;font-size:14px}
 .ai-bubble{background:#f0f4ff;border-radius:10px;padding:12px;font-size:13px;color:#333;margin-top:8px}
 .nutrition-breakdown{margin-top:8px}
@@ -206,6 +207,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
   <div class="tab" id="tab-history" onclick="showPage('history',this)">📅 履歴</div>
   <div class="tab" id="tab-restaurants" onclick="showPage('restaurants',this)">🍴 お店</div>
   <div class="tab" id="tab-friends" onclick="showPage('friends',this)">👥 友達<span class="badge" id="pending-badge" style="display:none"></span></div>
+  <div class="tab" id="tab-settings" onclick="showPage('settings',this)">⚙️ 設定</div>
 </div>
 <div class="content">
 
@@ -226,6 +228,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div class="nutrient-card protein"><div class="value" id="today-protein">0</div><div class="unit">g</div><div class="label">タンパク質</div></div>
         <div class="nutrient-card fat"><div class="value" id="today-fat">0</div><div class="unit">g</div><div class="label">脂質</div></div>
         <div class="nutrient-card carbs"><div class="value" id="today-carbs">0</div><div class="unit">g</div><div class="label">炭水化物</div></div>
+        <div class="nutrient-card sodium"><div class="value" id="today-sodium">0</div><div class="unit">mg</div><div class="label">塩分</div></div>
       </div>
     </div>
     <div class="card">
@@ -295,8 +298,10 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30"></div>
         <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15"></div>
         <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80"></div>
+        <div class="form-group"><label>塩分（mg）</label><input type="number" id="input-sodium" placeholder="例：2000"></div>
       </div>
       <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
+      <button class="btn btn-secondary" onclick="clearMealForm()">🧹 入力をクリア</button>
     </div>
   </div>
 
@@ -398,6 +403,16 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div id="friend-meals-list"></div>
     </div>
   </div>
+
+  <!-- 設定 -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <h2>🔔 メール通知設定</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:12px">友達が食事を記録したときに、ここで設定したメールアドレスに通知が届きます。</p>
+      <div class="form-group"><label>通知先メールアドレス</label><input type="email" id="notification-email" placeholder="example@mail.com"></div>
+      <button class="btn btn-primary" onclick="saveNotificationEmail()">💾 保存する</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -484,6 +499,31 @@ function loginSuccess(user){
   loadFriends();
   loadWeightGoal();
   loadRestaurants();
+  loadNotificationEmail();
+}
+
+async function loadNotificationEmail(){
+  if(!currentUser) return;
+  const cached=localStorage.getItem('pochalog_notification_email');
+  if(cached) document.getElementById('notification-email').value=cached;
+  try{
+    const res=await fetch('/api/profile?user_id='+currentUser.id);
+    if(res.ok){
+      const data=await res.json();
+      if(data&&data.notification_email!==undefined&&data.notification_email!==null){
+        document.getElementById('notification-email').value=data.notification_email;
+        localStorage.setItem('pochalog_notification_email',data.notification_email);
+      }
+    }
+  }catch(e){}
+}
+
+async function saveNotificationEmail(){
+  const notification_email=document.getElementById('notification-email').value.trim();
+  await fetch('/api/notification-email',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:currentUser.id,notification_email})});
+  localStorage.setItem('pochalog_notification_email',notification_email);
+  alert('通知設定を保存しました！');
 }
 
 async function loadMeals(){
@@ -529,10 +569,12 @@ function renderHome(){
   const totalProtein=dayMeals.reduce((s,m)=>s+(m.protein||0),0);
   const totalFat=dayMeals.reduce((s,m)=>s+(m.fat||0),0);
   const totalCarbs=dayMeals.reduce((s,m)=>s+(m.carbs||0),0);
+  const totalSodium=dayMeals.reduce((s,m)=>s+(m.sodium||0),0);
   document.getElementById('today-calories').textContent=totalCal.toLocaleString();
   document.getElementById('today-protein').textContent=Math.round(totalProtein*10)/10;
   document.getElementById('today-fat').textContent=Math.round(totalFat*10)/10;
   document.getElementById('today-carbs').textContent=Math.round(totalCarbs*10)/10;
+  document.getElementById('today-sodium').textContent=Math.round(totalSodium).toLocaleString();
   const html=['breakfast','lunch','dinner','snack'].map(type=>{
     const items=dayMeals.filter(m=>m.meal_type===type);
     if(!items.length) return '';
@@ -542,7 +584,7 @@ function renderHome(){
       ${m.restaurant_name?`<div style="font-size:11px;color:#667eea;margin-bottom:2px">🍴 ${m.restaurant_name}</div>`:''}
       <div class="meal-content">${m.meals_data}</div>
       <div class="meal-cal">${m.total_calories} kcal</div>
-      <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g</div>
+      <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g 塩分:${m.sodium||0}mg</div>
       <button class="meal-comment-btn" onclick="toggleComments('${m.id}')">💬 コメントを見る・書く</button>
       <div id="comments-${m.id}" style="display:none"></div>
     </div>`).join('');
@@ -863,6 +905,19 @@ async function saveEditRestaurant(id){
   await loadRestaurants();
 }
 
+function clearMealForm(){
+  document.getElementById('input-meals').value='';
+  document.getElementById('input-calories').value='';
+  document.getElementById('input-protein').value='';
+  document.getElementById('input-fat').value='';
+  document.getElementById('input-carbs').value='';
+  document.getElementById('input-sodium').value='';
+  document.getElementById('input-restaurant').value='';
+  document.getElementById('ai-calc-result').innerHTML='';
+  selectedPhotos=[];
+  document.getElementById('photo-previews').innerHTML='';
+}
+
 async function saveMeal(){
   const date=document.getElementById('input-date').value;
   const meals_data=document.getElementById('input-meals').value;
@@ -870,19 +925,12 @@ async function saveMeal(){
   const protein=parseFloat(document.getElementById('input-protein').value)||0;
   const fat=parseFloat(document.getElementById('input-fat').value)||0;
   const carbs=parseFloat(document.getElementById('input-carbs').value)||0;
+  const sodium=parseFloat(document.getElementById('input-sodium').value)||0;
   const restaurant_name=document.getElementById('input-restaurant').value.trim();
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
   await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,restaurant_name})});
-  document.getElementById('input-meals').value='';
-  document.getElementById('input-calories').value='';
-  document.getElementById('input-protein').value='';
-  document.getElementById('input-fat').value='';
-  document.getElementById('input-carbs').value='';
-  document.getElementById('input-restaurant').value='';
-  document.getElementById('ai-calc-result').innerHTML='';
-  selectedPhotos=[];
-  document.getElementById('photo-previews').innerHTML='';
+    body:JSON.stringify({user_id:currentUser.id,date,meals_data,total_calories,meal_type:selectedMealType,protein,fat,carbs,sodium,restaurant_name})});
+  clearMealForm();
   alert('保存しました！');
   await loadMeals();
   await loadRestaurants();
@@ -903,11 +951,11 @@ function showNutritionBreakdown(parsed){
   let html="<div class='nutrition-breakdown'>";
   if(parsed.items&&parsed.items.length>0){
     parsed.items.forEach(item=>{
-      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal P:${item.protein}g F:${item.fat}g C:${item.carbs}g</span></div>`;
+      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal P:${item.protein}g F:${item.fat}g C:${item.carbs}g 塩分:${item.sodium||0}mg</span></div>`;
     });
   }
   const t=parsed.total||{};
-  html+=`<div class='nutrition-total'><span>📊 合計</span><span>${t.calories||0}kcal P:${t.protein||0}g F:${t.fat||0}g C:${t.carbs||0}g</span></div></div>
+  html+=`<div class='nutrition-total'><span>📊 合計</span><span>${t.calories||0}kcal P:${t.protein||0}g F:${t.fat||0}g C:${t.carbs||0}g 塩分:${t.sodium||0}mg</span></div></div>
   <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(parsed.total||{})})'>✅ この値を使用する</button>`;
   resultDiv.innerHTML=html;
 }
@@ -917,6 +965,7 @@ function applyAIResult(total){
   document.getElementById('input-protein').value=total.protein||0;
   document.getElementById('input-fat').value=total.fat||0;
   document.getElementById('input-carbs').value=total.carbs||0;
+  document.getElementById('input-sodium').value=total.sodium||0;
 }
 
 async function calcNutritionFromText(){
@@ -926,7 +975,7 @@ async function calcNutritionFromText(){
   resultDiv.innerHTML="<div class='ai-loading'>🤖 AIが計算中...</div>";
   try{
     const text=await callAI(
-      'あなたは栄養士AIです。食事内容から各食品のカロリーと栄養素を推定してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
+      'あなたは栄養士AIです。食事内容から各食品のカロリーと栄養素を推定してください。塩分(sodium)はmg単位です。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}}',
       `以下の食事のカロリーと栄養素をJSON形式で:\n${meals}`
     );
     const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
@@ -969,7 +1018,7 @@ async function analyzePhotos(){
   resultDiv.innerHTML=`<div class='ai-loading'>📷 AIが${photos.length}枚の写真を分析中...</div>`;
   try{
     const text=await callAI(
-      'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。複数枚の場合はすべての料理を合算してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0}}',
+      'あなたは栄養士AIです。料理の写真を見て各食品のカロリーと栄養素を推定してください。塩分(sodium)はmg単位です。複数枚の場合はすべての料理を合算してください。必ず以下のJSON形式のみで回答（余分なテキスト不要）:\n{"meals":"料理名","items":[{"name":"食品名","calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}],"total":{"calories":0,"protein":0,"fat":0,"carbs":0,"sodium":0}}',
       '写真の料理を分析して各食品のカロリーと栄養素をJSON形式で教えてください。',
       photos
     );

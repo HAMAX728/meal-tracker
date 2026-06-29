@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express=require('express');
 const cors=require('cors');
+const nodemailer=require('nodemailer');
 const {createClient}=require('@supabase/supabase-js');
 const app=express();
 app.use(cors());
@@ -11,6 +12,43 @@ const supabaseUrl=process.env.SUPABASE_URL;
 const supabaseKey=process.env.SUPABASE_ANON_KEY;
 const supabase=createClient(supabaseUrl,supabaseKey);
 
+// メール送信設定（SMTP）。環境変数が未設定なら通知はスキップされる。
+let mailTransporter=null;
+if(process.env.SMTP_HOST&&process.env.SMTP_USER&&process.env.SMTP_PASS){
+  mailTransporter=nodemailer.createTransport({
+    host:process.env.SMTP_HOST,
+    port:parseInt(process.env.SMTP_PORT)||587,
+    secure:process.env.SMTP_SECURE==='true',
+    auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS}
+  });
+}
+
+// 食事を記録したユーザーの友達（承認済み）に通知メールを送る
+async function notifyFriendsOfMeal(user_id,meal_type,meals_data){
+  if(!mailTransporter) return;
+  try{
+    const{data:author}=await supabase.from('profiles').select('display_name').eq('id',user_id).single();
+    const authorName=author?.display_name||'友達';
+    const{data:friendships}=await supabase.from('friendships').select('requester_id,receiver_id').or(`requester_id.eq.${user_id},receiver_id.eq.${user_id}`).eq('status','accepted');
+    if(!friendships||friendships.length===0) return;
+    const friendIds=friendships.map(f=>f.requester_id===user_id?f.receiver_id:f.requester_id);
+    const{data:friends}=await supabase.from('profiles').select('display_name,notification_email').in('id',friendIds);
+    const mealTypeLabels={breakfast:'朝食',lunch:'昼食',dinner:'夕食',snack:'間食'};
+    const typeLabel=mealTypeLabels[meal_type]||'食事';
+    const recipients=(friends||[]).filter(f=>f.notification_email&&f.notification_email.trim());
+    for(const f of recipients){
+      try{
+        await mailTransporter.sendMail({
+          from:process.env.SMTP_FROM||process.env.SMTP_USER,
+          to:f.notification_email.trim(),
+          subject:`🐷 ぽちゃログ：${authorName}さんが${typeLabel}を記録しました`,
+          text:`${authorName}さんが${typeLabel}を記録しました。\n\n内容：${meals_data||''}\n\nぽちゃログでチェックしてみましょう！`
+        });
+      }catch(e){console.error('メール送信失敗:',f.notification_email,e.message);}
+    }
+  }catch(e){console.error('通知処理エラー:',e.message);}
+}
+
 app.get('/api/meals',async(req,res)=>{
   const{user_id}=req.query;
   const{data,error}=await supabase.from('meals').select('*').eq('user_id',user_id).order('date',{ascending:false});
@@ -19,8 +57,8 @@ app.get('/api/meals',async(req,res)=>{
 });
 
 app.post('/api/meals',async(req,res)=>{
-  const{user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,restaurant_name}=req.body;
-  const{error}=await supabase.from('meals').insert({user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,restaurant_name});
+  const{user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,restaurant_name}=req.body;
+  const{error}=await supabase.from('meals').insert({user_id,date,meals_data,total_calories,meal_type,protein,fat,carbs,sodium,restaurant_name});
   if(error) return res.status(500).json({error});
   if(restaurant_name&&restaurant_name.trim()){
     const{data:existing}=await supabase.from('restaurants').select('id').eq('user_id',user_id).eq('name',restaurant_name.trim()).single();
@@ -28,6 +66,7 @@ app.post('/api/meals',async(req,res)=>{
       await supabase.from('restaurants').insert({user_id,name:restaurant_name.trim(),status:'visited',visited_at:date});
     }
   }
+  notifyFriendsOfMeal(user_id,meal_type,meals_data);
   res.json({success:true});
 });
 
@@ -60,9 +99,16 @@ app.post('/api/register',async(req,res)=>{
 
 app.get('/api/profile',async(req,res)=>{
   const{user_id}=req.query;
-  const{data,error}=await supabase.from('profiles').select('id,email,display_name').eq('id',user_id).single();
+  const{data,error}=await supabase.from('profiles').select('id,email,display_name,notification_email').eq('id',user_id).single();
   if(error) return res.status(500).json({error});
   res.json(data);
+});
+
+app.post('/api/notification-email',async(req,res)=>{
+  const{user_id,notification_email}=req.body;
+  const{error}=await supabase.from('profiles').update({notification_email}).eq('id',user_id);
+  if(error) return res.status(500).json({error});
+  res.json({success:true});
 });
 
 app.get('/api/search-user',async(req,res)=>{

@@ -1034,7 +1034,8 @@ function summaryHTML(s){
 function renderCumulativeSummary(){
   const el=document.getElementById('cumulative-summary');
   if(!el) return;
-  const startDate=localStorage.getItem(DIET_START_KEY);
+  // localStorage優先・無ければ最初の記録日で補完（別端末でも表示できるように）
+  const startDate=getDietStart().startDate;
   if(!startDate){el.innerHTML="<div class='empty'>「⚖️ 減量」タブで減量開始日を設定してください</div>";return;}
   const today=getLocalToday();
   const s=computeSummary(startDate,today);
@@ -1045,7 +1046,7 @@ function setupPeriodDefaults(datesAsc){
   const startEl=document.getElementById('period-start');
   const endEl=document.getElementById('period-end');
   if(!startEl||!endEl) return;
-  if(!startEl.value) startEl.value=localStorage.getItem(DIET_START_KEY)||datesAsc[0]||getLocalToday();
+  if(!startEl.value) startEl.value=getDietStart().startDate||datesAsc[0]||getLocalToday();
   if(!endEl.value) endEl.value=getLocalToday();
 }
 

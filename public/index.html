@@ -483,6 +483,7 @@ let lastAIResult=null;
 let allMeals=[];
 let currentUser=null;
 let friendsList=[];
+let friendMealsCache={};
 let selectedPhotos=[];
 let weightGoal=null;
 let calorieGoal=2000;
@@ -1367,7 +1368,7 @@ async function viewFriendMeals(friend_id,display_name){
   if(!res.ok){alert('食事データの取得に失敗しました');return;}
   const meals=await res.json();
   const grouped={};
-  meals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
+  meals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);friendMealsCache[m.id]=m;});
   const dates=Object.keys(grouped).sort().reverse();
   const html=dates.map(date=>{
     const items=grouped[date];
@@ -1380,6 +1381,7 @@ async function viewFriendMeals(friend_id,display_name){
       ${items.map(m=>`<div style="font-size:13px;color:#666;margin-top:4px">
         ${mealTypeLabels[m.meal_type]||''} ${m.meals_data} (${m.total_calories}kcal)
         <button class="meal-comment-btn" onclick="toggleFriendComments('${m.id}','friend-c-${m.id}')">💬 コメント</button>
+        <button class="meal-comment-btn" style="color:#27ae60" onclick="copyMealToSelf('${m.id}')">📋 自分にコピー</button>
         <div id="friend-c-${m.id}" style="display:none"></div>
       </div>`).join('')}
     </div>`;
@@ -1387,6 +1389,27 @@ async function viewFriendMeals(friend_id,display_name){
   document.getElementById('friend-meals-title').textContent=display_name+'さんの食事';
   document.getElementById('friend-meals-list').innerHTML=html;
   document.getElementById('friend-meals-card').style.display='block';
+}
+
+async function copyMealToSelf(id){
+  const m=friendMealsCache[id];
+  if(!m){alert('食事データが見つかりません');return;}
+  await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      user_id:currentUser.id,
+      date:getLocalToday(),
+      meals_data:m.meals_data,
+      total_calories:m.total_calories||0,
+      meal_type:m.meal_type,
+      protein:m.protein||0,
+      fat:m.fat||0,
+      carbs:m.carbs||0,
+      sodium:m.sodium||0,
+      has_alcohol:!!m.has_alcohol,
+      alcohol_g:parseFloat(m.alcohol_g)||0
+    })});
+  alert('コピーしました！');
+  await loadMeals();
 }
 
 async function viewFriendProgress(friend_id,display_name){

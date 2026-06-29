@@ -597,6 +597,50 @@ async function deleteMeal(id){
   await loadMeals();
 }
 
+function startEditMeal(id){
+  const m=allMeals.find(x=>String(x.id)===String(id));
+  const div=document.getElementById('edit-'+id);
+  if(!m||!div) return;
+  if(div.style.display==='block'){div.style.display='none';return;}
+  const types=[['breakfast','🌅 朝食'],['lunch','☀️ 昼食'],['dinner','🌙 夕食'],['snack','🍪 間食']];
+  div.innerHTML=`<div style="background:#f8f9ff;border-radius:8px;padding:10px;margin-top:8px">
+    <div class="form-group"><label>食事の種類</label><select id="edit-type-${id}">${types.map(t=>`<option value="${t[0]}"${m.meal_type===t[0]?' selected':''}>${t[1]}</option>`).join('')}</select></div>
+    <div class="form-group"><label>食事内容</label><textarea id="edit-meals-${id}" rows="2">${escHtml(m.meals_data||'')}</textarea></div>
+    <div class="nutrients-row">
+      <div class="form-group"><label>カロリー</label><input type="number" id="edit-cal-${id}" value="${m.total_calories||0}"></div>
+      <div class="form-group"><label>タンパク質(g)</label><input type="number" id="edit-p-${id}" value="${m.protein||0}"></div>
+    </div>
+    <div class="nutrients-row">
+      <div class="form-group"><label>脂質(g)</label><input type="number" id="edit-f-${id}" value="${m.fat||0}"></div>
+      <div class="form-group"><label>炭水化物(g)</label><input type="number" id="edit-c-${id}" value="${m.carbs||0}"></div>
+    </div>
+    <div class="nutrients-row">
+      <div class="form-group"><label>塩分(mg)</label><input type="number" id="edit-s-${id}" value="${m.sodium||0}"></div>
+      <div class="form-group"><label>アルコール(g)</label><input type="number" id="edit-a-${id}" step="0.1" value="${parseFloat(m.alcohol_g)||0}"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveEditMeal('${id}')">💾 更新する</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('edit-${id}').style.display='none'">キャンセル</button>
+  </div>`;
+  div.style.display='block';
+}
+
+async function saveEditMeal(id){
+  const meals_data=document.getElementById('edit-meals-'+id).value.trim();
+  if(!meals_data){alert('食事内容を入力してください');return;}
+  const meal_type=document.getElementById('edit-type-'+id).value;
+  const total_calories=parseInt(document.getElementById('edit-cal-'+id).value)||0;
+  const protein=parseFloat(document.getElementById('edit-p-'+id).value)||0;
+  const fat=parseFloat(document.getElementById('edit-f-'+id).value)||0;
+  const carbs=parseFloat(document.getElementById('edit-c-'+id).value)||0;
+  const sodium=parseFloat(document.getElementById('edit-s-'+id).value)||0;
+  const alcohol_g=parseFloat(document.getElementById('edit-a-'+id).value)||0;
+  const has_alcohol=detectAlcohol(meals_data)||alcohol_g>0;
+  await fetch('/api/meals/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({meals_data,meal_type,total_calories,protein,fat,carbs,sodium,alcohol_g,has_alcohol})});
+  alert('更新しました！');
+  await loadMeals();
+}
+
 async function loadHomeSteps(){
   if(!weightGoal||!currentUser) return;
   const res=await fetch(`/api/steps?user_id=${currentUser.id}&date=${currentDate}`);
@@ -651,6 +695,8 @@ function renderHome(){
       <div class="meal-cal">${m.total_calories} kcal</div>
       <div class="meal-nutrients">P:${m.protein||0}g F:${m.fat||0}g C:${m.carbs||0}g 塩分:${m.sodium||0}mg</div>
       <button class="meal-comment-btn" onclick="toggleComments('${m.id}')">💬 コメントを見る・書く</button>
+      <button class="meal-comment-btn" style="color:#f39c12" onclick="startEditMeal('${m.id}')">✏️ 編集</button>
+      <div id="edit-${m.id}" style="display:none"></div>
       <div id="comments-${m.id}" style="display:none"></div>
     </div>`).join('');
   }).join('');

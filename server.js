@@ -70,6 +70,14 @@ app.post('/api/meals',async(req,res)=>{
   res.json({success:true});
 });
 
+app.put('/api/meals/:id',async(req,res)=>{
+  const{id}=req.params;
+  const{meals_data,meal_type,total_calories,protein,fat,carbs,sodium,has_alcohol,alcohol_g}=req.body;
+  const{error}=await supabase.from('meals').update({meals_data,meal_type,total_calories,protein,fat,carbs,sodium,has_alcohol,alcohol_g}).eq('id',id);
+  if(error) return res.status(500).json({error});
+  res.json({success:true});
+});
+
 app.delete('/api/meals/:id',async(req,res)=>{
   const{id}=req.params;
   const{error}=await supabase.from('meals').delete().eq('id',id);

@@ -312,11 +312,15 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       </div>
       <div class="form-group">
         <label>何人で食べましたか？（入力値を人数で割って1人分を保存）</label>
-        <div class="meal-type-buttons">
+        <div class="meal-type-buttons" style="flex-wrap:wrap">
           <div class="meal-type-btn selected" onclick="selectPeopleCount(1)" id="pc-1">1人</div>
           <div class="meal-type-btn" onclick="selectPeopleCount(2)" id="pc-2">2人</div>
           <div class="meal-type-btn" onclick="selectPeopleCount(3)" id="pc-3">3人</div>
           <div class="meal-type-btn" onclick="selectPeopleCount(4)" id="pc-4">4人</div>
+          <div class="meal-type-btn" onclick="selectPeopleCount(5)" id="pc-5">5人</div>
+          <div class="meal-type-btn" onclick="selectPeopleCount(6)" id="pc-6">6人</div>
+          <div class="meal-type-btn" onclick="selectPeopleCount(7)" id="pc-7">7人</div>
+          <div class="meal-type-btn" onclick="selectPeopleCount(8)" id="pc-8">8人</div>
         </div>
       </div>
       <button class="btn btn-primary" onclick="saveMeal()">💾 保存する</button>
@@ -1590,7 +1594,7 @@ function onNutrientInput(k){
 
 function selectPeopleCount(n){
   selectedPeopleCount=n;
-  [1,2,3,4].forEach(i=>document.getElementById('pc-'+i).classList.toggle('selected',i===n));
+  [1,2,3,4,5,6,7,8].forEach(i=>document.getElementById('pc-'+i).classList.toggle('selected',i===n));
   applySplitToInputs();
   if(lastAIResult) renderNutritionBreakdown();
 }

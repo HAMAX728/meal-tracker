@@ -318,6 +318,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
   <div class="page" id="page-weight">
     <div class="card">
       <h2>⚖️ 減量目標</h2>
+      <div id="diet-start-display"></div>
       <div id="weight-goal-display"><div class="empty">「⚙️ 設定」タブから目標を設定してください</div></div>
     </div>
     <div class="card" id="weight-stats" style="display:none">
@@ -417,6 +418,7 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
           <option value="female">女性</option>
         </select>
       </div>
+      <div class="form-group"><label>減量開始日</label><input type="date" id="w-start-date"></div>
       <button class="btn btn-primary" onclick="saveWeightGoal()">💾 目標を設定する</button>
     </div>
     <div class="card">
@@ -451,6 +453,7 @@ let friendsList=[];
 let selectedPhotos=[];
 let weightGoal=null;
 let calorieGoal=2000;
+const DIET_START_KEY='pochalog_diet_start_date';
 let allRestaurants=[];
 let selectedRestaurantStatus='want';
 let currentRestaurantFilter='all';
@@ -636,6 +639,27 @@ async function postComment(meal_id){
   await loadComments(meal_id);
 }
 
+function diffDaysFromToday(dateStr){
+  const parts=dateStr.split('-');
+  const start=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  const t=getLocalToday().split('-');
+  const today=new Date(parseInt(t[0]),parseInt(t[1])-1,parseInt(t[2]));
+  return Math.floor((today-start)/86400000);
+}
+
+function renderDietStart(){
+  const el=document.getElementById('diet-start-display');
+  if(!el) return;
+  const startDate=localStorage.getItem(DIET_START_KEY);
+  if(!startDate){el.innerHTML='';return;}
+  const days=diffDaysFromToday(startDate);
+  const label=days<0?'開始まであと '+Math.abs(days)+'日':(days===0?'今日からスタート！':days+'日目');
+  el.innerHTML=`<div class="deficit-card deficit-minus" style="margin-bottom:12px">
+    <div class="deficit-number">${label}</div>
+    <div class="deficit-label">減量開始日: ${formatDateJP(startDate)}</div>
+  </div>`;
+}
+
 function renderWeightGoalDisplay(){
   const el=document.getElementById('weight-goal-display');
   if(!weightGoal){el.innerHTML="<div class='empty'>「⚙️ 設定」タブから目標を設定してください</div>";return;}
@@ -650,6 +674,9 @@ function renderWeightGoalDisplay(){
 
 async function loadWeightGoal(){
   if(!currentUser) return;
+  const savedStart=localStorage.getItem(DIET_START_KEY);
+  if(savedStart) document.getElementById('w-start-date').value=savedStart;
+  renderDietStart();
   const res=await fetch('/api/weight-goal?user_id='+currentUser.id);
   weightGoal=await res.json();
   renderWeightGoalDisplay();
@@ -670,6 +697,9 @@ async function saveWeightGoal(){
   const height=parseFloat(document.getElementById('w-height').value);
   const age=parseInt(document.getElementById('w-age').value);
   const gender=document.getElementById('w-gender').value;
+  const startDate=document.getElementById('w-start-date').value;
+  if(startDate) localStorage.setItem(DIET_START_KEY,startDate);
+  else localStorage.removeItem(DIET_START_KEY);
   if(!current_weight||!target_weight||!height||!age){alert('すべて入力してください');return;}
   if(target_weight>=current_weight){alert('目標体重は現在体重より小さくしてください');return;}
   await fetch('/api/weight-goal',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1277,7 +1307,7 @@ function showPage(name,el){
   el.classList.add('active');
   if(name==='history') renderHistory();
   if(name==='friends') loadFriends();
-  if(name==='weight') renderWeightStats();
+  if(name==='weight'){renderDietStart();renderWeightStats();}
   if(name==='restaurants') loadRestaurants();
 }
 

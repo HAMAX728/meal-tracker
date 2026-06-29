@@ -343,6 +343,10 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <div style="font-size:12px;color:#aaa;margin-top:6px" id="estimated-weight-detail"></div>
       </div>
     </div>
+    <div class="card" id="theoretical-weight-card" style="display:none">
+      <h2>📈 理論体重の推移</h2>
+      <div id="theoretical-weight-chart"></div>
+    </div>
     <div class="card" id="weight-stats" style="display:none">
       <h2>📊 今日の収支</h2>
       <div id="deficit-display"></div>
@@ -778,6 +782,77 @@ function renderEstimatedWeight(dateMap,stepsMap,bmr){
   card.style.display='block';
 }
 
+// 開始日〜今日の各記録日について、累計赤字から理論体重を求めSVG折れ線で描画
+function renderTheoreticalWeightChart(stepsMap,bmr){
+  const card=document.getElementById('theoretical-weight-card');
+  const el=document.getElementById('theoretical-weight-chart');
+  if(!card||!el) return;
+  const startDate=localStorage.getItem(DIET_START_KEY);
+  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
+  if(!startWeight&&weightGoal) startWeight=weightGoal.current_weight;
+  if(!startDate||!startWeight){card.style.display='none';return;}
+  const today=getLocalToday();
+  const dateMap={};
+  allMeals.forEach(m=>{if(m.date>=startDate&&m.date<=today){dateMap[m.date]=(dateMap[m.date]||0)+(m.total_calories||0);}});
+  const dates=Object.keys(dateMap).sort();
+  const series=[{date:startDate,weight:startWeight}];
+  let cum=0;
+  dates.forEach(d=>{
+    const steps=stepsMap[d]||0;
+    const consumed=Math.round(bmr+steps*0.035);
+    cum+=consumed-dateMap[d];
+    series.push({date:d,weight:startWeight-cum/7200});
+  });
+  if(series.length<2){card.style.display='none';return;}
+  card.style.display='block';
+  const target=weightGoal?weightGoal.target_weight:null;
+  const W=340,H=220,padL=40,padR=14,padT=16,padB=30;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+  const weights=series.map(p=>p.weight);
+  let minW=Math.min.apply(null,weights),maxW=Math.max.apply(null,weights);
+  if(target!=null){minW=Math.min(minW,target);maxW=Math.max(maxW,target);}
+  const range=(maxW-minW)||1;
+  minW-=range*0.12;maxW+=range*0.12;
+  const xAt=i=>padL+(series.length<=1?0:(i/(series.length-1))*plotW);
+  const yAt=w=>padT+(1-(w-minW)/(maxW-minW))*plotH;
+  const fmtMD=s=>{const p=s.split('-');return parseInt(p[1])+'/'+parseInt(p[2]);};
+  const fmtW=w=>(Math.round(w*10)/10);
+  let grid='';
+  const ticks=4;
+  for(let t=0;t<=ticks;t++){
+    const wv=minW+(maxW-minW)*(t/ticks);
+    const yy=yAt(wv).toFixed(1);
+    grid+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#f3e3ec" stroke-width="1"/>`;
+    grid+=`<text x="${padL-4}" y="${(yAt(wv)+3).toFixed(1)}" font-size="9" fill="#b9a7b0" text-anchor="end">${fmtW(wv)}</text>`;
+  }
+  let xlabels='';
+  const idxs=[...new Set([0,Math.floor((series.length-1)/2),series.length-1])];
+  idxs.forEach(i=>{xlabels+=`<text x="${xAt(i).toFixed(1)}" y="${H-padB+16}" font-size="9" fill="#b9a7b0" text-anchor="middle">${fmtMD(series[i].date)}</text>`;});
+  let targetLine='';
+  if(target!=null){
+    const ty=yAt(target).toFixed(1);
+    targetLine=`<line x1="${padL}" y1="${ty}" x2="${W-padR}" y2="${ty}" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <text x="${W-padR}" y="${(yAt(target)-4).toFixed(1)}" font-size="9" fill="#27ae60" text-anchor="end">目標 ${target}kg</text>`;
+  }
+  const pts=series.map((p,i)=>`${xAt(i).toFixed(1)},${yAt(p.weight).toFixed(1)}`).join(' ');
+  const firstX=xAt(0).toFixed(1),lastX=xAt(series.length-1).toFixed(1),baseY=(H-padB).toFixed(1);
+  const area=`<polygon points="${firstX},${baseY} ${pts} ${lastX},${baseY}" fill="#f48fb1" opacity="0.12"/>`;
+  const circles=series.length<=31?series.map((p,i)=>`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.weight).toFixed(1)}" r="2.5" fill="#e91e8c"/>`).join(''):'';
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    ${grid}
+    ${area}
+    ${targetLine}
+    <polyline points="${pts}" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${circles}
+    ${xlabels}
+  </svg>
+  <div style="display:flex;gap:14px;justify-content:center;margin-top:6px;font-size:11px;color:#888">
+    <span><span style="display:inline-block;width:12px;height:2px;background:#e91e8c;vertical-align:middle"></span> 理論体重</span>
+    ${target!=null?'<span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #27ae60;vertical-align:middle"></span> 目標体重</span>':''}
+  </div>
+  <div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">現在の理論体重: ${fmtW(series[series.length-1].weight)}kg（開始 ${fmtW(startWeight)}kg）</div>`;
+}
+
 function renderWeightGoalDisplay(){
   const el=document.getElementById('weight-goal-display');
   if(!weightGoal){el.innerHTML="<div class='empty'>「⚙️ 設定」タブから目標を設定してください</div>";return;}
@@ -870,6 +945,7 @@ async function renderWeightStats(){
     cumulativeDeficit+=(dayConsumed-dateMap[date]);
   }
   renderEstimatedWeight(dateMap,allStepsMap,bmr);
+  renderTheoreticalWeightChart(allStepsMap,bmr);
   const progressPct=Math.min(Math.max((cumulativeDeficit/totalDeficit)*100,0),100);
   const deficitDiv=document.getElementById('deficit-display');
   if(todayDeficit>0){

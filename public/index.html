@@ -293,12 +293,12 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
         <button class="btn btn-photo" onclick="analyzePhotos()" style="margin-top:6px">📷 写真をAI分析する</button>
       </div>
       <div id="ai-calc-result"></div>
-      <div class="form-group" style="margin-top:12px"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650"></div>
+      <div class="form-group" style="margin-top:12px"><label>カロリー（kcal）</label><input type="number" id="input-calories" placeholder="例：650" oninput="onNutrientInput('calories')"></div>
       <div class="nutrients-row">
-        <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30"></div>
-        <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15"></div>
-        <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80"></div>
-        <div class="form-group"><label>塩分（mg）</label><input type="number" id="input-sodium" placeholder="例：2000"></div>
+        <div class="form-group"><label>タンパク質（g）</label><input type="number" id="input-protein" placeholder="例：30" oninput="onNutrientInput('protein')"></div>
+        <div class="form-group"><label>脂質（g）</label><input type="number" id="input-fat" placeholder="例：15" oninput="onNutrientInput('fat')"></div>
+        <div class="form-group"><label>炭水化物（g）</label><input type="number" id="input-carbs" placeholder="例：80" oninput="onNutrientInput('carbs')"></div>
+        <div class="form-group"><label>塩分（mg）</label><input type="number" id="input-sodium" placeholder="例：2000" oninput="onNutrientInput('sodium')"></div>
       </div>
       <div class="form-group">
         <label>何人で食べましたか？（入力値を人数で割って1人分を保存）</label>
@@ -443,6 +443,7 @@ function getWeekStart(){
 let currentDate=getLocalToday();
 let selectedMealType='breakfast';
 let selectedPeopleCount=1;
+let nutrientBase={calories:0,protein:0,fat:0,carbs:0,sodium:0};
 let allMeals=[];
 let currentUser=null;
 let friendsList=[];
@@ -943,19 +944,18 @@ function clearMealForm(){
   document.getElementById('ai-calc-result').innerHTML='';
   selectedPhotos=[];
   document.getElementById('photo-previews').innerHTML='';
+  nutrientBase={calories:0,protein:0,fat:0,carbs:0,sodium:0};
   selectPeopleCount(1);
 }
 
 async function saveMeal(){
   const date=document.getElementById('input-date').value;
   const meals_data=document.getElementById('input-meals').value;
-  const people=selectedPeopleCount||1;
-  const r1=v=>Math.round(v*10)/10;
-  const total_calories=Math.round((parseInt(document.getElementById('input-calories').value)||0)/people);
-  const protein=r1((parseFloat(document.getElementById('input-protein').value)||0)/people);
-  const fat=r1((parseFloat(document.getElementById('input-fat').value)||0)/people);
-  const carbs=r1((parseFloat(document.getElementById('input-carbs').value)||0)/people);
-  const sodium=Math.round((parseFloat(document.getElementById('input-sodium').value)||0)/people);
+  const total_calories=parseInt(document.getElementById('input-calories').value)||0;
+  const protein=parseFloat(document.getElementById('input-protein').value)||0;
+  const fat=parseFloat(document.getElementById('input-fat').value)||0;
+  const carbs=parseFloat(document.getElementById('input-carbs').value)||0;
+  const sodium=parseFloat(document.getElementById('input-sodium').value)||0;
   const restaurant_name=document.getElementById('input-restaurant').value.trim();
   if(!date||!meals_data){alert('日付と食事内容を入力してください');return;}
   await fetch('/api/meals',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -991,11 +991,8 @@ function showNutritionBreakdown(parsed){
 }
 
 function applyAIResult(total){
-  document.getElementById('input-calories').value=total.calories||0;
-  document.getElementById('input-protein').value=total.protein||0;
-  document.getElementById('input-fat').value=total.fat||0;
-  document.getElementById('input-carbs').value=total.carbs||0;
-  document.getElementById('input-sodium').value=total.sodium||0;
+  nutrientBase={calories:total.calories||0,protein:total.protein||0,fat:total.fat||0,carbs:total.carbs||0,sodium:total.sodium||0};
+  applySplitToInputs();
 }
 
 async function calcNutritionFromText(){
@@ -1262,9 +1259,30 @@ function selectMealType(type){
   });
 }
 
+const NUTRIENT_IDS={calories:'input-calories',protein:'input-protein',fat:'input-fat',carbs:'input-carbs',sodium:'input-sodium'};
+
+function applySplitToInputs(){
+  const n=selectedPeopleCount||1;
+  Object.keys(NUTRIENT_IDS).forEach(k=>{
+    const base=nutrientBase[k]||0;
+    const el=document.getElementById(NUTRIENT_IDS[k]);
+    if(!base){el.value='';return;}
+    const val=base/n;
+    el.value=(k==='calories'||k==='sodium')?Math.round(val):Math.round(val*10)/10;
+  });
+}
+
+// 入力欄を手入力したとき、現在の人数から1人分→全体（base）の値を再計算
+function onNutrientInput(k){
+  const n=selectedPeopleCount||1;
+  const v=parseFloat(document.getElementById(NUTRIENT_IDS[k]).value)||0;
+  nutrientBase[k]=v*n;
+}
+
 function selectPeopleCount(n){
   selectedPeopleCount=n;
   [1,2,3,4].forEach(i=>document.getElementById('pc-'+i).classList.toggle('selected',i===n));
+  applySplitToInputs();
 }
 
 document.getElementById('r-genre').innerHTML=genreOptions('');

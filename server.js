@@ -256,11 +256,15 @@ app.get('/api/steps-all',async(req,res)=>{
 app.post('/api/ai',async(req,res)=>{
   const{system,user,images}=req.body;
   try{
-    const messages=[{role:'user',content:images&&images.length>0?[...images.map(img=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:img}})),{type:'text',text:user}]:[{type:'text',text:user}]}];
+    const hasImages=images&&images.length>0;
+    const messages=[{role:'user',content:hasImages?[...images.map(img=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:img}})),{type:'text',text:user}]:[{type:'text',text:user}]}];
+    // テキスト計算は高速なHaiku、写真分析は視覚精度の高いSonnetを使用
+    const model=hasImages?'claude-sonnet-4-6':'claude-haiku-4-5';
+    const max_tokens=hasImages?1024:768;
     const response=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-opus-4-6',max_tokens:1000,system,messages})
+      body:JSON.stringify({model,max_tokens,system,messages})
     });
     const data=await response.json();
     res.json({text:data.content?.[0]?.text||''});

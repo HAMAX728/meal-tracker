@@ -444,6 +444,7 @@ let currentDate=getLocalToday();
 let selectedMealType='breakfast';
 let selectedPeopleCount=1;
 let nutrientBase={calories:0,protein:0,fat:0,carbs:0,sodium:0};
+let lastAIResult=null;
 let allMeals=[];
 let currentUser=null;
 let friendsList=[];
@@ -942,6 +943,7 @@ function clearMealForm(){
   document.getElementById('input-sodium').value='';
   document.getElementById('input-restaurant').value='';
   document.getElementById('ai-calc-result').innerHTML='';
+  lastAIResult=null;
   selectedPhotos=[];
   document.getElementById('photo-previews').innerHTML='';
   nutrientBase={calories:0,protein:0,fat:0,carbs:0,sodium:0};
@@ -976,16 +978,35 @@ async function callAI(system,user,images){
 
 function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+function splitNutrient(obj,n){
+  return{
+    calories:Math.round((obj.calories||0)/n),
+    protein:Math.round(((obj.protein||0)/n)*10)/10,
+    fat:Math.round(((obj.fat||0)/n)*10)/10,
+    carbs:Math.round(((obj.carbs||0)/n)*10)/10,
+    sodium:Math.round((obj.sodium||0)/n)
+  };
+}
+
 function showNutritionBreakdown(parsed){
+  lastAIResult=parsed;
+  renderNutritionBreakdown();
+}
+
+function renderNutritionBreakdown(){
+  const parsed=lastAIResult;
   const resultDiv=document.getElementById('ai-calc-result');
+  if(!parsed){resultDiv.innerHTML='';return;}
+  const n=selectedPeopleCount||1;
   let html="<div class='nutrition-breakdown'>";
   if(parsed.items&&parsed.items.length>0){
     parsed.items.forEach(item=>{
-      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${item.calories}kcal P:${item.protein}g F:${item.fat}g C:${item.carbs}g 塩分:${item.sodium||0}mg</span></div>`;
+      const it=splitNutrient(item,n);
+      html+=`<div class='nutrition-item'><span class='nutrition-item-name'>🍽️ ${escHtml(item.name)}</span><span class='nutrition-item-values'>${it.calories}kcal P:${it.protein}g F:${it.fat}g C:${it.carbs}g 塩分:${it.sodium}mg</span></div>`;
     });
   }
-  const t=parsed.total||{};
-  html+=`<div class='nutrition-total'><span>📊 合計</span><span>${t.calories||0}kcal P:${t.protein||0}g F:${t.fat||0}g C:${t.carbs||0}g 塩分:${t.sodium||0}mg</span></div></div>
+  const t=splitNutrient(parsed.total||{},n);
+  html+=`<div class='nutrition-total'><span>📊 合計${n>1?'（1人分）':''}</span><span>${t.calories}kcal P:${t.protein}g F:${t.fat}g C:${t.carbs}g 塩分:${t.sodium}mg</span></div></div>
   <button class='btn btn-primary' style='margin-top:8px' onclick='applyAIResult(${JSON.stringify(parsed.total||{})})'>✅ この値を使用する</button>`;
   resultDiv.innerHTML=html;
 }
@@ -1283,6 +1304,7 @@ function selectPeopleCount(n){
   selectedPeopleCount=n;
   [1,2,3,4].forEach(i=>document.getElementById('pc-'+i).classList.toggle('selected',i===n));
   applySplitToInputs();
+  if(lastAIResult) renderNutritionBreakdown();
 }
 
 document.getElementById('r-genre').innerHTML=genreOptions('');

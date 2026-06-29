@@ -348,6 +348,19 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       </div>
     </div>
     <div class="card">
+      <h2>📈 減量開始日からの累計</h2>
+      <div id="cumulative-summary"><div class="empty">「⚖️ 減量」タブで減量開始日を設定してください</div></div>
+    </div>
+    <div class="card">
+      <h2>🔎 期間を指定して集計</h2>
+      <div class="nutrients-row">
+        <div class="form-group"><label>開始日</label><input type="date" id="period-start"></div>
+        <div class="form-group"><label>終了日</label><input type="date" id="period-end"></div>
+      </div>
+      <button class="btn btn-primary" onclick="renderPeriodSummary()">集計する</button>
+      <div id="period-summary" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
       <h2>📅 記録履歴</h2>
       <div id="history-list"><div class="empty">読み込み中...</div></div>
     </div>
@@ -463,6 +476,7 @@ let weightGoal=null;
 let calorieGoal=2000;
 const DIET_START_KEY='pochalog_diet_start_date';
 const DIET_START_WEIGHT_KEY='pochalog_start_weight';
+let historyStepsMap={};
 let allRestaurants=[];
 let selectedRestaurantStatus='want';
 let currentRestaurantFilter='all';
@@ -805,6 +819,66 @@ async function renderWeightStats(){
     </div>`;
 }
 
+function computeSummary(startDate,endDate){
+  const grouped={};
+  allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
+  const bmr=weightGoal?Math.round(calcBMR(weightGoal)):0;
+  const dates=Object.keys(grouped).filter(d=>(!startDate||d>=startDate)&&(!endDate||d<=endDate));
+  let totalIntake=0,totalConsumed=0,totalSteps=0,alcoholDays=0;
+  dates.forEach(d=>{
+    const intake=grouped[d].reduce((s,m)=>s+(m.total_calories||0),0);
+    const steps=historyStepsMap[d]||0;
+    totalIntake+=intake;
+    totalConsumed+=bmr+Math.round(steps*0.035);
+    totalSteps+=steps;
+    if(grouped[d].some(m=>m.has_alcohol)) alcoholDays++;
+  });
+  const n=dates.length;
+  return {n,totalIntake,totalConsumed,deficit:totalConsumed-totalIntake,alcoholDays,
+    avgIntake:n?Math.round(totalIntake/n):0,avgSteps:n?Math.round(totalSteps/n):0};
+}
+
+function summaryHTML(s){
+  if(!s.n) return "<div class='empty'>対象期間の記録がありません</div>";
+  const deficitColor=s.deficit>0?'#27ae60':'#e74c3c';
+  const deficitSign=s.deficit>0?'−':'+';
+  return `<div class="weekly-grid">
+    <div class="weekly-item"><div class="weekly-value">${s.totalIntake.toLocaleString()}</div><div class="weekly-label">総摂取カロリー (kcal)</div></div>
+    <div class="weekly-item"><div class="weekly-value">${s.totalConsumed.toLocaleString()}</div><div class="weekly-label">総消費カロリー (kcal)</div></div>
+    <div class="weekly-item"><div class="weekly-value" style="color:${deficitColor}">${deficitSign}${Math.abs(s.deficit).toLocaleString()}</div><div class="weekly-label">累計赤字 (kcal)</div></div>
+    <div class="weekly-item"><div class="weekly-value" style="color:#e67e22">${s.alcoholDays} 🍺</div><div class="weekly-label">累計お酒日数 (日)</div></div>
+    <div class="weekly-item"><div class="weekly-value">${s.avgIntake.toLocaleString()}</div><div class="weekly-label">平均摂取カロリー (kcal/日)</div></div>
+    <div class="weekly-item"><div class="weekly-value">${s.avgSteps.toLocaleString()}</div><div class="weekly-label">平均歩数 (歩/日)</div></div>
+  </div>
+  <div style="font-size:12px;color:#aaa;margin-top:8px;text-align:center">記録日数: ${s.n}日</div>`;
+}
+
+function renderCumulativeSummary(){
+  const el=document.getElementById('cumulative-summary');
+  if(!el) return;
+  const startDate=localStorage.getItem(DIET_START_KEY);
+  if(!startDate){el.innerHTML="<div class='empty'>「⚖️ 減量」タブで減量開始日を設定してください</div>";return;}
+  const today=getLocalToday();
+  const s=computeSummary(startDate,today);
+  el.innerHTML=`<div style="font-size:12px;color:#888;margin-bottom:8px">${formatDateJP(startDate)} 〜 ${formatDateJP(today)}</div>`+summaryHTML(s);
+}
+
+function setupPeriodDefaults(datesAsc){
+  const startEl=document.getElementById('period-start');
+  const endEl=document.getElementById('period-end');
+  if(!startEl||!endEl) return;
+  if(!startEl.value) startEl.value=localStorage.getItem(DIET_START_KEY)||datesAsc[0]||getLocalToday();
+  if(!endEl.value) endEl.value=getLocalToday();
+}
+
+function renderPeriodSummary(){
+  const start=document.getElementById('period-start').value;
+  const end=document.getElementById('period-end').value;
+  if(!start||!end){alert('開始日と終了日を選択してください');return;}
+  if(start>end){alert('終了日は開始日以降にしてください');return;}
+  document.getElementById('period-summary').innerHTML=summaryHTML(computeSummary(start,end));
+}
+
 async function renderHistory(){
   const grouped={};
   allMeals.forEach(m=>{if(!grouped[m.date])grouped[m.date]=[];grouped[m.date].push(m);});
@@ -816,6 +890,9 @@ async function renderHistory(){
     const res=await fetch('/api/steps-all?user_id='+currentUser.id);
     if(res.ok) stepsMap=await res.json();
   }
+  historyStepsMap=stepsMap;
+  renderCumulativeSummary();
+  setupPeriodDefaults(datesAsc);
   const weekStart=getWeekStart();
   const weekDates=datesAsc.filter(d=>d>=weekStart);
   if(weekDates.length>0){

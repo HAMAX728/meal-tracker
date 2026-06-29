@@ -488,6 +488,7 @@ let weightGoal=null;
 let calorieGoal=2000;
 const DIET_START_KEY='pochalog_diet_start_date';
 const DIET_START_WEIGHT_KEY='pochalog_start_weight';
+const DIET_GENDER_KEY='pochalog_gender';
 let historyStepsMap={};
 let allRestaurants=[];
 let selectedRestaurantStatus='want';
@@ -768,6 +769,7 @@ async function saveWeightGoal(){
   else localStorage.removeItem(DIET_START_KEY);
   if(!current_weight||!target_weight||!height||!age){alert('すべて入力してください');return;}
   localStorage.setItem(DIET_START_WEIGHT_KEY,current_weight);
+  localStorage.setItem(DIET_GENDER_KEY,gender);
   if(target_weight>=current_weight){alert('目標体重は現在体重より小さくしてください');return;}
   await fetch('/api/weight-goal',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({user_id:currentUser.id,current_weight,target_weight,height,age,gender})});
@@ -953,6 +955,8 @@ async function renderHistory(){
     cumulativeByDate[date]=runningTotal;
   });
   const totalNeeded=weightGoal?(weightGoal.current_weight-weightGoal.target_weight)*7200:0;
+  const gender=localStorage.getItem(DIET_GENDER_KEY)||(weightGoal&&weightGoal.gender);
+  const sodiumLimit=gender==='female'?6500:7500;
   const rows=dates.map(date=>{
     const items=grouped[date];
     const total=items.reduce((s,m)=>s+(m.total_calories||0),0);
@@ -970,7 +974,7 @@ async function renderHistory(){
         <span style="font-weight:bold;font-size:14px">${formatDateJP(date)}${hasAlcohol?' 🍺':''}</span>
         <span style="color:#667eea;font-weight:bold">${total} kcal</span>
       </div>
-      <div style="font-size:12px;color:#999;margin-top:2px">タンパク質:${Math.round(totalP*10)/10}g 脂質:${Math.round(totalF*10)/10}g 炭水化物:${Math.round(totalC*10)/10}g <span style="color:${totalSodium>2300?'#e74c3c':'#999'};font-weight:${totalSodium>2300?'bold':'normal'}">塩分:${Math.round(totalSodium).toLocaleString()}mg</span> <span style="color:${totalAlcohol>20?'#e74c3c':'#999'};font-weight:${totalAlcohol>20?'bold':'normal'}">アルコール:${Math.round(totalAlcohol*10)/10}g</span></div>
+      <div style="font-size:12px;color:#999;margin-top:2px">タンパク質:${Math.round(totalP*10)/10}g 脂質:${Math.round(totalF*10)/10}g 炭水化物:${Math.round(totalC*10)/10}g <span style="color:${totalSodium>sodiumLimit?'#e74c3c':'#999'};font-weight:${totalSodium>sodiumLimit?'bold':'normal'}">塩分:${Math.round(totalSodium).toLocaleString()}mg</span> <span style="color:${totalAlcohol>20?'#e74c3c':'#999'};font-weight:${totalAlcohol>20?'bold':'normal'}">アルコール:${Math.round(totalAlcohol*10)/10}g</span></div>
       ${bmr>0?`<div style="margin-top:8px;display:flex;gap:8px">
         <div style="flex:1;background:${deficit>0?'#e8f8f0':'#fef0f0'};border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:11px;color:#888">今日の収支</div>

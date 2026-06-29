@@ -321,6 +321,14 @@ body{font-family:'Helvetica Neue',sans-serif;background:#f0f4f8;min-height:100vh
       <div id="diet-start-display"></div>
       <div id="weight-goal-display"><div class="empty">「⚙️ 設定」タブから目標を設定してください</div></div>
     </div>
+    <div class="card" id="estimated-weight-card" style="display:none">
+      <h2>🪶 想定体重</h2>
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:48px;font-weight:bold;color:#27ae60" id="estimated-weight">-</div>
+        <div style="font-size:13px;color:#888">kg（カロリー収支から算出）</div>
+        <div style="font-size:12px;color:#aaa;margin-top:6px" id="estimated-weight-detail"></div>
+      </div>
+    </div>
     <div class="card" id="weight-stats" style="display:none">
       <h2>📊 今日の収支</h2>
       <div id="deficit-display"></div>
@@ -454,6 +462,7 @@ let selectedPhotos=[];
 let weightGoal=null;
 let calorieGoal=2000;
 const DIET_START_KEY='pochalog_diet_start_date';
+const DIET_START_WEIGHT_KEY='pochalog_start_weight';
 let allRestaurants=[];
 let selectedRestaurantStatus='want';
 let currentRestaurantFilter='all';
@@ -660,6 +669,28 @@ function renderDietStart(){
   </div>`;
 }
 
+function renderEstimatedWeight(dateMap,stepsMap,bmr){
+  const card=document.getElementById('estimated-weight-card');
+  if(!card) return;
+  const startDate=localStorage.getItem(DIET_START_KEY);
+  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
+  if(!startWeight&&weightGoal) startWeight=weightGoal.current_weight;
+  if(!startDate||!startWeight){card.style.display='none';return;}
+  let deficitSinceStart=0;
+  for(const date of Object.keys(dateMap)){
+    if(date<startDate) continue;
+    const daySteps=stepsMap[date]||0;
+    const dayConsumed=Math.round(bmr+daySteps*0.035);
+    deficitSinceStart+=(dayConsumed-dateMap[date]);
+  }
+  const estimated=startWeight-deficitSinceStart/7200;
+  document.getElementById('estimated-weight').textContent=(Math.round(estimated*100)/100).toFixed(2);
+  const diff=estimated-startWeight;
+  const diffLabel=diff<0?`開始時から ${(Math.round(Math.abs(diff)*100)/100).toFixed(2)}kg 減 🎉`:(diff>0?`開始時から ${(Math.round(diff*100)/100).toFixed(2)}kg 増`:'開始時から変化なし');
+  document.getElementById('estimated-weight-detail').textContent=`開始時体重 ${startWeight}kg ／ 累計赤字 ${Math.round(deficitSinceStart).toLocaleString()}kcal ／ ${diffLabel}`;
+  card.style.display='block';
+}
+
 function renderWeightGoalDisplay(){
   const el=document.getElementById('weight-goal-display');
   if(!weightGoal){el.innerHTML="<div class='empty'>「⚙️ 設定」タブから目標を設定してください</div>";return;}
@@ -701,6 +732,7 @@ async function saveWeightGoal(){
   if(startDate) localStorage.setItem(DIET_START_KEY,startDate);
   else localStorage.removeItem(DIET_START_KEY);
   if(!current_weight||!target_weight||!height||!age){alert('すべて入力してください');return;}
+  localStorage.setItem(DIET_START_WEIGHT_KEY,current_weight);
   if(target_weight>=current_weight){alert('目標体重は現在体重より小さくしてください');return;}
   await fetch('/api/weight-goal',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({user_id:currentUser.id,current_weight,target_weight,height,age,gender})});
@@ -749,6 +781,7 @@ async function renderWeightStats(){
     const dayConsumed=Math.round(bmr+daySteps*0.035);
     cumulativeDeficit+=(dayConsumed-dateMap[date]);
   }
+  renderEstimatedWeight(dateMap,allStepsMap,bmr);
   const progressPct=Math.min(Math.max((cumulativeDeficit/totalDeficit)*100,0),100);
   const deficitDiv=document.getElementById('deficit-display');
   if(todayDeficit>0){

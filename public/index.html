@@ -778,11 +778,14 @@ function renderDietStart(){
 // localStorageを優先するが、localStorageは端末ごとに別管理のため、未設定の端末（例:別のスマホ）では
 // サーバー同期済みのデータから補完する（開始日=最初の記録日、開始体重=現在体重）。
 function getDietStart(){
+  // 優先順位: localStorage → サーバー保存値(weightGoal) → フォールバック(最初の記録日 / 現在体重)
   let startDate=localStorage.getItem(DIET_START_KEY);
+  if(!startDate&&weightGoal&&weightGoal.start_date) startDate=weightGoal.start_date;
   if(!startDate&&Array.isArray(allMeals)&&allMeals.length){
     startDate=allMeals.reduce((min,m)=>(m.date&&(!min||m.date<min))?m.date:min,null);
   }
   let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
+  if((!startWeight||isNaN(startWeight))&&weightGoal&&weightGoal.start_weight!=null) startWeight=parseFloat(weightGoal.start_weight);
   if((!startWeight||isNaN(startWeight))&&weightGoal) startWeight=parseFloat(weightGoal.current_weight);
   if(!startWeight||isNaN(startWeight)) startWeight=null;
   return {startDate:startDate||null,startWeight};
@@ -903,6 +906,12 @@ async function loadWeightGoal(){
     document.getElementById('w-height').value=weightGoal.height;
     document.getElementById('w-age').value=weightGoal.age;
     document.getElementById('w-gender').value=weightGoal.gender;
+    // サーバー保存の開始日・開始体重を反映（localStorageが空の端末＝別端末ではここで同期）
+    if(weightGoal.start_date&&!localStorage.getItem(DIET_START_KEY)) localStorage.setItem(DIET_START_KEY,weightGoal.start_date);
+    if(weightGoal.start_weight!=null&&!localStorage.getItem(DIET_START_WEIGHT_KEY)) localStorage.setItem(DIET_START_WEIGHT_KEY,weightGoal.start_weight);
+    const effStart=localStorage.getItem(DIET_START_KEY)||weightGoal.start_date||'';
+    if(effStart) document.getElementById('w-start-date').value=effStart;
+    renderDietStart();
     document.getElementById('weight-stats').style.display='block';
     await renderWeightStats();
   }
@@ -922,7 +931,7 @@ async function saveWeightGoal(){
   localStorage.setItem(DIET_GENDER_KEY,gender);
   if(target_weight>=current_weight){alert('目標体重は現在体重より小さくしてください');return;}
   await fetch('/api/weight-goal',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({user_id:currentUser.id,current_weight,target_weight,height,age,gender})});
+    body:JSON.stringify({user_id:currentUser.id,current_weight,target_weight,height,age,gender,start_date:startDate||null,start_weight:current_weight})});
   await loadWeightGoal();
   alert('目標を設定しました！');
 }

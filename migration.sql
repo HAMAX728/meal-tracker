@@ -11,3 +11,7 @@ ALTER TABLE meals ADD COLUMN IF NOT EXISTS has_alcohol boolean DEFAULT false;
 
 -- 4. 純アルコール量（g）
 ALTER TABLE meals ADD COLUMN IF NOT EXISTS alcohol_g numeric DEFAULT 0;
+
+-- 5. 減量開始日・開始体重（端末間で同期するためDBに保存）
+ALTER TABLE weight_goals ADD COLUMN IF NOT EXISTS start_date date;
+ALTER TABLE weight_goals ADD COLUMN IF NOT EXISTS start_weight numeric;

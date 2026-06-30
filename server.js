@@ -216,12 +216,12 @@ app.get('/api/weight-goal',async(req,res)=>{
 });
 
 app.post('/api/weight-goal',async(req,res)=>{
-  const{user_id,current_weight,target_weight,height,age,gender}=req.body;
+  const{user_id,current_weight,target_weight,height,age,gender,start_date,start_weight}=req.body;
   const{data:existing}=await supabase.from('weight_goals').select('id').eq('user_id',user_id).single();
   if(existing){
-    await supabase.from('weight_goals').update({current_weight,target_weight,height,age,gender}).eq('user_id',user_id);
+    await supabase.from('weight_goals').update({current_weight,target_weight,height,age,gender,start_date,start_weight}).eq('user_id',user_id);
   }else{
-    await supabase.from('weight_goals').insert({user_id,current_weight,target_weight,height,age,gender});
+    await supabase.from('weight_goals').insert({user_id,current_weight,target_weight,height,age,gender,start_date,start_weight});
   }
   res.json({success:true});
 });

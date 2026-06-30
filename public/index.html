@@ -778,14 +778,12 @@ function renderDietStart(){
 // localStorageを優先するが、localStorageは端末ごとに別管理のため、未設定の端末（例:別のスマホ）では
 // サーバー同期済みのデータから補完する（開始日=最初の記録日、開始体重=現在体重）。
 function getDietStart(){
-  // 優先順位: localStorage → サーバー保存値(weightGoal) → フォールバック(最初の記録日 / 現在体重)
-  let startDate=localStorage.getItem(DIET_START_KEY);
-  if(!startDate&&weightGoal&&weightGoal.start_date) startDate=weightGoal.start_date;
+  // 優先順位: サーバー保存値(weightGoal=DBが正) → localStorage → フォールバック(最初の記録日 / 現在体重)
+  let startDate=(weightGoal&&weightGoal.start_date)||localStorage.getItem(DIET_START_KEY);
   if(!startDate&&Array.isArray(allMeals)&&allMeals.length){
     startDate=allMeals.reduce((min,m)=>(m.date&&(!min||m.date<min))?m.date:min,null);
   }
-  let startWeight=parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
-  if((!startWeight||isNaN(startWeight))&&weightGoal&&weightGoal.start_weight!=null) startWeight=parseFloat(weightGoal.start_weight);
+  let startWeight=(weightGoal&&weightGoal.start_weight!=null)?parseFloat(weightGoal.start_weight):parseFloat(localStorage.getItem(DIET_START_WEIGHT_KEY));
   if((!startWeight||isNaN(startWeight))&&weightGoal) startWeight=parseFloat(weightGoal.current_weight);
   if(!startWeight||isNaN(startWeight)) startWeight=null;
   return {startDate:startDate||null,startWeight};
@@ -906,10 +904,10 @@ async function loadWeightGoal(){
     document.getElementById('w-height').value=weightGoal.height;
     document.getElementById('w-age').value=weightGoal.age;
     document.getElementById('w-gender').value=weightGoal.gender;
-    // サーバー保存の開始日・開始体重を反映（localStorageが空の端末＝別端末ではここで同期）
-    if(weightGoal.start_date&&!localStorage.getItem(DIET_START_KEY)) localStorage.setItem(DIET_START_KEY,weightGoal.start_date);
-    if(weightGoal.start_weight!=null&&!localStorage.getItem(DIET_START_WEIGHT_KEY)) localStorage.setItem(DIET_START_WEIGHT_KEY,weightGoal.start_weight);
-    const effStart=localStorage.getItem(DIET_START_KEY)||weightGoal.start_date||'';
+    // サーバー保存（DB）を正としてlocalStorageを無条件で上書き同期（別端末での変更を確実に反映）
+    if(weightGoal.start_date) localStorage.setItem(DIET_START_KEY,weightGoal.start_date);
+    if(weightGoal.start_weight!=null) localStorage.setItem(DIET_START_WEIGHT_KEY,weightGoal.start_weight);
+    const effStart=weightGoal.start_date||localStorage.getItem(DIET_START_KEY)||'';
     if(effStart) document.getElementById('w-start-date').value=effStart;
     renderDietStart();
     document.getElementById('weight-stats').style.display='block';
